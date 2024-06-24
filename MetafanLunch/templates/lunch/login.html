@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"
+        type="text/css" />
+    <style>
+        body {
+            direction: rtl;
+            font-family: vazirmatn, sans-serif;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            margin-top: 100px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="text-align: center;">ورود به سامانه ناهار متافن</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="phone_number">تلفن همراه:</label>
+                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="form-group">
+                <label for="password">گذرواژه:</label>
+                <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <div class="form-group">
+                <label for="otp">کد یکبار مصرف:</label>
+                <input type="text" class="form-control" id="otp" name="otp">
+            </div>
+            <a style="text-align: center;">در صورتی که گذرواژه خود را فراموش کردید برای دریافت کد یکبار مصرف کلیک
+                کنید.</a>
+            <button type="submit" class="btn btn-primary">ورود / دریافت کد</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Retrieve and set the value of the phone number field from local storage when the page loads
+        window.onload = function () {
+            var phoneNumber = localStorage.getItem('phoneNumber');
+            if (phoneNumber) {
+                document.getElementById('phone_number').value = phoneNumber;
+            }
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            // Store the value of the phone number field in local storage before form submission
+            localStorage.setItem('phoneNumber', document.getElementById('phone_number').value);
+        });
+    </script>
+
+
+</body>
+
+</html>
