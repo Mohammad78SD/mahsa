@@ -52,7 +52,7 @@ SECRET_KEY = '***REMOVED***'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.12','127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.11','127.0.0.1']
 
 
 
@@ -60,6 +60,8 @@ ALLOWED_HOSTS = ['192.168.1.12','127.0.0.1']
 
 INSTALLED_APPS = [
     "unfold",
+    "crispy_forms",
+    'crispy_bootstrap4',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,6 +73,8 @@ INSTALLED_APPS = [
     'surveys',
     'sqlite3'
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -93,7 +93,7 @@ def register(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('reserve_lunch')
+        return redirect('dashboard')
     
     if request.method == 'POST':
         phone_number = request.POST['phone_number']

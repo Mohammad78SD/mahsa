@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 {% load static %}
 <html lang="fa-IR">
 
@@ -30,8 +31,9 @@
             position: relative;
             display: inline-block;
             margin: 20px;
-            width: 100px;
-            height: 100px;
+            width: 125px;
+            height: 125px;
+            /* Increased height to accommodate text */
             border-radius: 50%;
             background-color: white;
             color: white;
@@ -40,36 +42,36 @@
             text-decoration: none;
             transition: background-color 0.3s ease;
             overflow: hidden;
+
         }
 
         .circle-link:hover {
-            background-color:#60b8ff;
+            background-color: #60b8ff;
         }
 
-        .circle-link img {
+        .circle-link .circle-img {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px;
+            /* Space between image and text */
+        }
+
+        .circle-link .circle-img img {
             width: 60%;
             height: 60%;
-            margin-top: 20%;
             transition: opacity 0.3s ease;
         }
 
-        .circle-link span {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            display: none;
+        .circle-link .circle-text {
+            color: #000;
+            /* Text color */
+            font-size: 14px;
+            /* Font size */
+        }
+
+        .circle-link:hover .circle-text {
             color: #fff;
-            font-size: 18px;
-        }
-
-        .circle-link:hover img {
-            opacity: 0;
-        }
-
-        .circle-link:hover span {
-            display: block;
         }
 
         @media (max-width: 768px) {
@@ -81,16 +83,27 @@
             }
 
             .circle-link {
-                width: 80px;
-                height: 80px;
-                line-height: 25px;
+                width: 120px;
+                height: 120px;
                 font-size: 14px;
             }
 
-            .circle-link img {
+            .circle-link .circle-img {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                /* Space between image and text */
+            }
+
+            .circle-link .circle-img img {
                 width: 50%;
                 height: 50%;
-                margin-top: 25%;
+                margin-top: 10px;
+            }
+
+            .circle-link .circle-text {
+                font-size: 12px;
+                /* Smaller font size for smaller screens */
             }
         }
     </style>
@@ -98,23 +111,31 @@
 
 <body>
     <div class="container">
-        <a href="https://panel.metafan.info"><img src="{% static 'images/metafan-logo.webp' %}" alt="لوگو" style="display: block; margin: auto auto 30px auto; width: 30%;"></a>
+        <a href="https://panel.metafan.info"><img src="{% static 'images/metafan-logo.webp' %}" alt="لوگو"
+                style="display: block; margin: auto auto 30px auto; width: 30%;"></a>
         <h2>داشبورد پنل کاربری متافن</h2>
         <p>برای دسترسی به بخش‌های مختلف پنل، روی دایره‌های زیر کلیک کنید:</p>
         <div>
             <a href="{% url 'reserve_lunch' %}" class="circle-link">
-                <span>رزرو ناهار</span>
-                <img src="{% static 'images/lunch-icon.webp' %}" style="height: auto;" alt="ناهار">
+                <div class="circle-img">
+                    <img src="{% static 'images/lunch-icon.webp' %}" alt="ناهار">
+                </div>
+                <div class="circle-text">رزرو ناهار</div>
             </a>
             <a href="{% url 'monthly_report' %}" class="circle-link">
-                <img src="{% static 'images/monthly-report-icon.webp' %}" style="height: auto;" alt="گزارش ماهانه">
-                <span>گزارش ماهانه</span>
+                <div class="circle-img">
+                    <img src="{% static 'images/monthly-report-icon.webp' %}" alt="گزارش ماهانه">
+                </div>
+                <div class="circle-text">گزارش ماهانه</div>
             </a>
             <a href="{% url 'season_survey' %}" class="circle-link">
-                <img src="{% static 'images/season-survey-icon.webp' %}" style="height: auto;" alt="نظرسجی فصلی">
-                <span>نظرسجی فصلی</span>
+                <div class="circle-img">
+                    <img src="{% static 'images/season-survey-icon.webp' %}" alt="نظرسجی فصلی">
+                </div>
+                <div class="circle-text">نظرسجی فصلی</div>
             </a>
         </div>
     </div>
 </body>
+
 </html>

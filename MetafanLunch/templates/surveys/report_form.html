@@ -15,7 +15,7 @@
         }
 
         .container {
-            max-width:600px;
+            max-width: 600px;
             margin: auto;
             padding: 50px 75px;
             margin-top: 50px;
@@ -39,26 +39,40 @@
             margin: 1rem auto 1rem;
             /* Center button */
         }
+
         @media (max-width: 768px) {
             .container {
                 max-width: 300px;
-                padding: 20px; /* Adjust padding for smaller screens */
+                padding: 20px;
+                /* Adjust padding for smaller screens */
                 margin-top: 30px;
                 margin-bottom: 30px;
             }
-        }   
+
+            .form-control {
+                width: 100%;
+            }
+
+            textarea {
+                resize: vertical;
+            }
+        }
     </style>
 </head>
+
 <body>
+    {%load crispy_forms_tags %} 
     <div class="container">
-        <a href="https://panel.metafan.info"><img src="{% static 'images/metafan-logo.webp' %}" alt="لوگو" style="display: block; margin: auto auto 30px auto; width: 30%;"></a>
+        <a href="https://panel.metafan.info"><img src="{% static 'images/metafan-logo.webp' %}" alt="لوگو"
+                style="display: block; margin: auto auto 30px auto; width: 30%;"></a>
         <h2 style="text-align: center;">گزارش ماهانه</h2>
         <p style="text-align: center;">برای ارسال گزارش ماهانه، فرم زیر را تکمیل و ارسال نمایید</p>
-        <form method="post">
+        <form method="post" style="max-width: fit-content;">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form|crispy}}
             <button type="submit" class="btn btn-primary">ارسال</button>
         </form>
     </div>
 </body>
+
 </html>
