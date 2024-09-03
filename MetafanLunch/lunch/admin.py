@@ -3,8 +3,10 @@ from lunch.models import Lunch, CustomUser
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 import jdatetime
-from datetime import datetime, timedelta
 from django.contrib.auth.models import Group
+from .forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
 
 class ShamsiDateRangeFilter(admin.SimpleListFilter):
     title = _('تاریخ ماهانه')
@@ -47,5 +49,30 @@ class Filter(admin.ModelAdmin):
     dates.short_description = 'تاریخ'
 admin.site.register(Lunch, Filter)
 
-admin.site.register(CustomUser)
+
+
+class CustomUserAdmin(BaseUserAdmin):
+    form = UserChangeForm
+    add_form = UserCreationForm
+    
+    list_display = ('phone_number', 'first_name', 'last_name', 'is_staff')
+    list_filter = ('is_staff', 'is_superuser')
+    fieldsets = (
+        (None, {'fields': ('phone_number', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_staff', 'is_superuser')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('phone_number', 'first_name', 'last_name', 'password1', 'password2'),
+        }),
+    )
+    search_fields = ('phone_number', 'first_name', 'last_name')
+    ordering = ('phone_number',)
+    
+
+
+admin.site.register(CustomUser, CustomUserAdmin)
+
 admin.site.unregister(Group)

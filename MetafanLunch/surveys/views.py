@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import ReportForm, SeasonForm
-from .models import MonthlyReport, SeasonSurveyQuestion as Question, SeasonSurveyResponse as Response
+from .models import Payslip, SeasonSurveyQuestion as Question, SeasonSurveyResponse as Response
 
 @login_required
 def monthly_report(request):
@@ -43,3 +43,9 @@ def survey_view(request):
 
 def survey_success(request):
     return render(request, 'surveys/success.html')
+
+
+@login_required
+def payslip_list(request):
+    payslips = Payslip.objects.filter(user=request.user)
+    return render(request, 'payslips/payslip_list.html', {'payslips': payslips})

@@ -1,60 +1,89 @@
-<!DOCTYPE html>
-<html lang="fa">
+<!-- templates/myapp/your_template.html -->
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>سامانه ناهار متافن</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"
-    type="text/css" />
-  <style>
-    body {
-      direction: rtl;
-      font-family: Vazirmatn, sans-serif;
-    }
+{% block title %}سامانه ناهار متافن{% endblock %}
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 80vh;
-      margin-top: 10vh;
-      margin-bottom: 10vh;
-      background-color: #d4f1f7;
-      border-radius: 25px;
-    }
-
-    /* .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 50px;
-      margin-top: 50px;
-      margin-bottom: 50px;
-      background-color: #d4f1f7;
-      border-radius: 25px;
-    } */
-
-    .btn {
-      margin: 10px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <div class="container">
-    <h1>خوش آمدید</h1>
-    <div>
-      <a href="/lunch/login" class="btn btn-primary">ورود</a>
-      <!-- <a href="/lunch/register" class="btn btn-success">ثبت نام</a> -->
-    </div>
+{% block content %}
+{% load static %}
+<div class="container">
+  <h1>خوش آمدید</h1>
+  <div>
+    <a href="/lunch/login" class="btn btn-primary">ورود</a>
+    <a class="btn btn-primary" id="subscribe">فعال سازی پیام ها</a>
+    <!-- <a href="/lunch/register" class="btn btn-success">ثبت نام</a> -->
   </div>
+</div>
 
-  <!-- Bootstrap Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let vapidPublicKey;
 
-</html>
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  function subscribeUser() {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/static/service-worker.js')
+        .then(function (registration) {
+          return registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+          });
+        })
+        .then(function (subscription) {
+          // Send subscription to your server
+          return fetch('/save-subscription/', {
+            method: 'POST',
+            body: JSON.stringify(subscription),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        })
+        .catch(function (error) {
+          if (error.name === 'NotAllowedError') {
+            console.log('Permission denied for notifications');
+          } else {
+            console.error('Error:', error);
+          }
+        });
+    }
+  }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isIOSWithPushSupport = isIOS && 'PushManager' in window;
+
+  if (isIOSWithPushSupport) {
+    // iOS-specific instructions
+    console.log('To receive notifications, please add this website to your home screen.');
+  } else if (isIOS) {
+    console.log('Push notifications are not supported on this iOS version. Please update to iOS 16.4 or later.');
+  }
+
+  document.getElementById('subscribe').addEventListener('click', function () {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      fetch('/get-vapid-key/')
+        .then(response => response.json())
+        .then(data => {
+          vapidPublicKey = data.publicKey;
+          console.log('Received VAPID Public Key:', vapidPublicKey);
+          console.log('Type of VAPID Public Key:', typeof vapidPublicKey);
+          subscribeUser();
+        })
+        .catch(error => console.error('Error fetching VAPID key:', error));
+    }
+  });
+</script>
+{% endblock %}

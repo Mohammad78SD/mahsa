@@ -46,3 +46,14 @@ class SeasonSurveyResponse(models.Model):
         
     def __str__(self):
         return (f'نظرسنجی فصل {self.season.name} {self.user.first_name} {self.user.last_name}')
+    
+
+class Payslip(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    date = jmodels.jDateField()
+    file = models.FileField(upload_to='payslips/')
+    def __str__(self):
+        return f'فیش حقوقی {self.date.strftime('%B')} ماه {self.user.first_name} {self.user.last_name}'
+    class Meta:
+        verbose_name = "فیش حقوقی"
+        verbose_name_plural = "فیش حقوقی"

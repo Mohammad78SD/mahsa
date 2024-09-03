@@ -1,5 +1,5 @@
 from django.contrib import admin
-from surveys.models import MonthlyReport, Season, SeasonSurveyQuestion as Question, SeasonSurveyResponse as Response
+from surveys.models import MonthlyReport, Season, SeasonSurveyQuestion as Question, SeasonSurveyResponse as Response, Payslip
 
 
 
@@ -17,3 +17,5 @@ class ResponseAdmin(admin.ModelAdmin):
     list_filter = ['user', 'season', 'question']
 
 admin.site.register(MonthlyReport)
+
+admin.site.register(Payslip)

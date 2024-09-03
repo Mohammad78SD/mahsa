@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth import authenticate, login, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from .models import Lunch, OTP, CustomUser
 from django.contrib.auth.forms import UserCreationForm
@@ -23,8 +23,8 @@ from django.http import HttpResponse
 def send_lunch_reservation_sms(request):
     print('Sending lunch reservation SMS...')
     today = jdatetime.date.today()
-    if today.strftime('%A') == 'چهارشنبه':
-        tomorrow = today + jdatetime.timedelta(days=3)
+    if today.strftime('%A') == 'چهارشنبه' or today.strftime('%A') == 'پنج‌شنبه':
+        return HttpResponse("we dont send sms in wednsday and thursday.")
     else:
         tomorrow = today + jdatetime.timedelta(days=1)
 
@@ -49,14 +49,18 @@ def send_lunch_reservation_sms(request):
         'date': tomorrow.strftime('%A %Y/%m/%d'),
         'names': message
         }
-        send_sms('***REMOVED***', ptrn)
+        send_sms(['***REMOVED***','***REMOVED***','***REMOVED***','***REMOVED***'], ptrn)
         print("SMS sent")
     else:
         message = "رزروی وجود ندارد"
         print("No reservations found")
     return HttpResponse(message)
 
-
+def logout_view(request):
+    logout(request)
+    print("user logged out.")
+    return redirect('login')
+    
 def register(request):
     if request.user.is_authenticated:
         return redirect('reserve_lunch')
@@ -101,21 +105,21 @@ def login_view(request):
         otp = request.POST.get('otp')
 
         if password:
-            print("in password if of login")
             user = authenticate(request, phone_number=phone_number, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                return redirect('dashboard')
         elif otp:
-            print("in otp if of login")
             otp_obj = OTP.objects.filter(phone_number=phone_number, otp=otp, expiry_time__gte=timezone.now()).first()
             if otp_obj:
                 user = CustomUser.objects.get(phone_number=phone_number)
                 login(request, user)
                 print("user logged in")
-                return redirect('home')
+                return redirect('dashboard')
 
-        # If password or OTP is not provided or is incorrect, generate a new OTP
+        user = CustomUser.objects.filter(phone_number=phone_number).first()
+        if user is None:
+            return redirect('register')
         otp = random.randint(1000, 9999)
         expiry_time = timezone.now() + timezone.timedelta(minutes=5)
         OTP.objects.create(phone_number=phone_number, otp=otp, expiry_time=expiry_time)
@@ -126,13 +130,10 @@ def login_view(request):
 @login_required(login_url='login')
 def reserve_lunch(request):
     today = jdatetime.date.today()
-    if today.strftime('%A') == 'چهارشنبه':
-        tomorrow = today + jdatetime.timedelta(days=3)
-    else:
-        tomorrow = today + jdatetime.timedelta(days=1)
+    tomorrow = today + jdatetime.timedelta(days=1)
     after_tomorrow = tomorrow + jdatetime.timedelta(days=1)
     print(datetime.datetime.now().hour)
-    if(datetime.datetime.now().hour<16):
+    if(datetime.datetime.now().hour<7):
         dates = [(tomorrow + jdatetime.timedelta(days=i)) for i in range(7)]
     else:
         dates = [(after_tomorrow + jdatetime.timedelta(days=i)) for i in range(7)]

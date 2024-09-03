@@ -36,11 +36,11 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(phone_number, password, **extra_fields)
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    phone_number = models.CharField(max_length=15, unique=True)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    phone_number = models.CharField(max_length=15, unique=True, verbose_name='شماره موبایل')
+    first_name = models.CharField(max_length=30, verbose_name='نام')
+    last_name = models.CharField(max_length=30,verbose_name='نام خانوادگی')
+    is_active = models.BooleanField(default=True, verbose_name='وضعیت کاربر')
+    is_staff = models.BooleanField(default=False, verbose_name='آیا ادمین است؟')
 
     objects = CustomUserManager()
 
