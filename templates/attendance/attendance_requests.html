@@ -12,7 +12,7 @@
     </style>
     <div class="tab__box">
         <div class="tab__items">
-            <a class="tab__item" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <!-- <a class="tab__item" href="#">ورود و خروج امروز</a> -->
             <a class="tab__item" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
             <a class="tab__item is-active" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
             <a class="tab__item" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
@@ -20,7 +20,8 @@
     </div>
 
     {% for message in messages %}
-    <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+    <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{
+        message }}</div>
     {% endfor %}
 
 
@@ -46,11 +47,11 @@
                     <td>{{ request.request_reason|truncatechars:50 }}</td>
                     <td>
                         {% if request.status == 'pending' %}
-                            <span class="text-warning">در انتظار بررسی</span>
+                        <span class="text-warning">در انتظار بررسی</span>
                         {% elif request.status == 'approved' %}
-                            <span class="text-success">تایید شده</span>
+                        <span class="text-success">تایید شده</span>
                         {% elif request.status == 'rejected' %}
-                            <span class="text-danger" style="color: red;">رد شده</span>
+                        <span class="text-danger" style="color: red;">رد شده</span>
                         {% endif %}
                     </td>
                 </tr>

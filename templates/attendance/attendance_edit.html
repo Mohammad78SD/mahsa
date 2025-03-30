@@ -18,25 +18,28 @@
     </style>
     <div class="tab__box">
         <div class="tab__items">
-            <a class="tab__item" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <!-- <a class="tab__item" href="#">ورود و خروج امروز</a> -->
             <a class="tab__item" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
             <a class="tab__item" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
             <a class="tab__item is-active" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
         </div>
     </div>
-    
+
     <!-- Form with padding and background color -->
     <form method="POST" class="padding-30 bg-white font-size-14">
         {% csrf_token %}
         {% for message in messages %}
-        <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+        <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{
+            message }}</div>
         {% endfor %}
-        
-        <h2 style="text-align: center; padding-bottom: 20px;">درخواست تغییر ساعت ورود و خروج</h2>
+
+        <h2 style="text-align: center;">درخواست تغییر ساعت ورود و خروج</h2>
+        <h3 style="text-align: center; padding-bottom: 20px; color: red;">شما در ماه مجاز به ثبت ۳ درخواست هستید</h3>
 
         <!-- Requested Check-in Time Field -->
         <div class="row no-gutters border-2 margin-bottom-15" style="text-align: center;">
-            <div class="w-50" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
+            <div class="w-50"
+                style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
                 ساعت ورود جدید
             </div>
             <div class="w-50 bg-fafafa padding-20">
@@ -46,7 +49,8 @@
 
         <!-- Requested Check-out Time Field -->
         <div class="row no-gutters border-2 margin-bottom-15" style="text-align: center;">
-            <div class="w-50" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
+            <div class="w-50"
+                style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
                 ساعت خروج جدید
             </div>
             <div class="w-50 bg-fafafa padding-20">
@@ -57,7 +61,8 @@
         {% if request.resolver_match.url_name == 'request_attendance' %}
         <!-- Date Field -->
         <div class="row no-gutters border-2 margin-bottom-15" style="text-align: center;">
-            <div class="w-50" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
+            <div class="w-50"
+                style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
                 تاریخ
             </div>
             <div class="w-50 bg-fafafa padding-20">
@@ -67,7 +72,8 @@
         {% endif %}
         <!-- Request Reason Field -->
         <div class="row no-gutters border-2 margin-bottom-15" style="text-align: center;">
-            <div class="w-50" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
+            <div class="w-50"
+                style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
                 دلیل درخواست
             </div>
             <div class="w-50 bg-fafafa padding-20">

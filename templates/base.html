@@ -40,33 +40,42 @@
                     href="{% url 'home' %}">پیشخوان</a></li>
             <li
                 class="item-li i-transactions {% if request.resolver_match.url_name == 'attendance' or request.resolver_match.url_name == 'attendance_list' %}is-active{% endif %}">
-                <a href="{% url 'attendance' %}">ساعت ورود و خروج</a></li>
+                <a href="{% url 'attendance_list' %}">ساعت ورود و خروج</a>
+            </li>
             <li
                 class="item-li i-courses {% if request.resolver_match.url_name == 'reserve_lunch' %}is-active{% endif %}">
-                <a href="#">رزرو ناهار</a></li>
+                <a href="#">رزرو ناهار</a>
+            </li>
             <li
                 class="item-li i-user__inforamtion {% if request.resolver_match.url_name == 'monthly_report' or request.resolver_match.url_name == 'last_report' %}is-active{% endif %}">
-                <a href="{% url 'last_report' %}">گزارش ماهانه</a></li>
+                <a href="{% url 'last_report' %}">گزارش ماهانه</a>
+            </li>
             <li
                 class="item-li i-categories {% if request.resolver_match.url_name == 'season_survey' %}is-active{% endif %}">
-                <a href="{% url 'season_survey' %}">نظرسنجی فصلی</a></li>
+                <a href="{% url 'season_survey' %}">نظرسنجی فصلی</a>
+            </li>
             <li
                 class="item-li i-articles {% if request.resolver_match.url_name == 'file_list' or request.resolver_match.url_name == 'send_file'%}is-active{% endif %}">
-                <a href="{% url 'file_list' %}">مدیریت فایل ها</a></li>
+                <a href="{% url 'file_list' %}">مدیریت فایل ها</a>
+            </li>
             <li
                 class="item-li i-slideshow {% if request.resolver_match.url_name == 'payslip_list' %}is-active{% endif %}">
-                <a href="{% url 'payslip_list' %}">فیش حقوقی</a></li>
+                <a href="{% url 'payslip_list' %}">فیش حقوقی</a>
+            </li>
             <li
                 class="item-li i-notification__management {% if request.resolver_match.url_name == 'messages_list' %}is-active{% endif %}">
-                <a href="{% url 'messages_list' %}">پیام ها</a></li>
+                <a href="{% url 'messages_list' %}">پیام ها</a>
+            </li>
             <li class="item-li i-users {% if request.resolver_match.url_name == 'profile_info' %}is-active{% endif %}">
-                <a href="{% url 'profile_info' %}">اطلاعات کاربری</a></li>
+                <a href="{% url 'profile_info' %}">اطلاعات کاربری</a>
+            </li>
         </ul>
         {% elif user.is_file and not user.is_staff %}
         <ul>
             <li
                 class="item-li i-articles {% if request.resolver_match.url_name == 'file_list' or 'send_file'%}is-active{% endif %}">
-                <a href="{% url 'file_list' %}">مدیریت فایل ها</a></li>
+                <a href="{% url 'file_list' %}">مدیریت فایل ها</a>
+            </li>
         </ul>
         {% endif %}
     </div>

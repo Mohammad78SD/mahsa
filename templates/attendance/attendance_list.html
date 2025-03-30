@@ -10,7 +10,7 @@
     </style>
     <div class="tab__box">
         <div class="tab__items">
-            <a class="tab__item" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <!-- <a class="tab__item" href="#">ورود و خروج امروز</a> -->
             <a class="tab__item is-active" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
             <a class="tab__item" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
             <a class="tab__item" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
@@ -38,7 +38,8 @@
                         {{ attendance.duration|persian_numbers }}
                     </td>
                     <td>
-                        <a href="{% url 'change_attendance' attendance.id %}" class="item-edit mlg-15" title="درخواست ویرایش" style="color: black;"></a>
+                        <a href="{% url 'change_attendance' attendance.id %}" class="item-edit mlg-15"
+                            title="درخواست ویرایش" style="color: black;"></a>
                     </td>
                 </tr>
                 {% empty %}
