@@ -44,7 +44,7 @@
             </li>
             <li
                 class="item-li i-courses {% if request.resolver_match.url_name == 'reserve_lunch' %}is-active{% endif %}">
-                <a href="#">رزرو ناهار</a>
+                <a href="{% url 'reserve_lunch' %}">رزرو ناهار</a>
             </li>
             <li
                 class="item-li i-user__inforamtion {% if request.resolver_match.url_name == 'monthly_report' or request.resolver_match.url_name == 'last_report' %}is-active{% endif %}">
