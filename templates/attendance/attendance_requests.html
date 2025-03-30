@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}درخواست‌های بازبینی حضور{% endblock %}
+{% load persian_numbers %}
+
+{% block content %}
+
+<div class="main-content">
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+    </style>
+    <div class="tab__box">
+        <div class="tab__items">
+            <a class="tab__item" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <a class="tab__item" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
+            <a class="tab__item is-active" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
+            <a class="tab__item" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
+        </div>
+    </div>
+
+    {% for message in messages %}
+    <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+    {% endfor %}
+
+
+    <div class="table__box">
+        <table class="table">
+            <thead role="rowgroup">
+                <tr role="row" class="title-row">
+                    <th>تاریخ درخواست</th>
+                    <th>تاریخ حضور</th>
+                    <th>ساعت ورود درخواستی</th>
+                    <th>ساعت خروج درخواستی</th>
+                    <th>دلیل درخواست</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in user_requests %}
+                <tr role="row">
+                    <td>{{ request.created_at|date:"Y/m/d H:i"|persian_numbers }}</td>
+                    <td>{{ request.date|date:"Y/m/d"|persian_numbers }}</td>
+                    <td>{{ request.requested_check_in|time:"H:i"|persian_numbers }}</td>
+                    <td>{{ request.requested_check_out|time:"H:i"|persian_numbers }}</td>
+                    <td>{{ request.request_reason|truncatechars:50 }}</td>
+                    <td>
+                        {% if request.status == 'pending' %}
+                            <span class="text-warning">در انتظار بررسی</span>
+                        {% elif request.status == 'approved' %}
+                            <span class="text-success">تایید شده</span>
+                        {% elif request.status == 'rejected' %}
+                            <span class="text-danger" style="color: red;">رد شده</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">هیچ درخواست بازبینی برای نمایش وجود ندارد.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

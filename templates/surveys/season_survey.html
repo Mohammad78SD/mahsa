@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+
+<div class="bg-white padding-20"style="margin: 20px;">
+
+    <h2 style="text-align: center;">نظرسنجی فصلی</h2>
+    <p style="text-align: center;"><b>آخرین نظرسنجی ثبت شده شما</b>: {{ last_season_report }}</p>
+    <p style="text-align: center;">1 کمترین و 5 بیشترین مقدار را دارد.</p>
+    {% for message in messages %}
+    <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+    {% endfor %}
+    <br>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <strong>{{ form.season.label_tag }}</strong> {{ form.season }}
+        </div>
+        <br>
+        {% for field in form %}
+        {% if field.name != 'season' %}
+        <div>
+            <strong>{{ field.label_tag }}</strong> {{ field }}
+            <br>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-netcopy_net">ارسال</button>
+    </form>
+
+</div>
+{% endblock %}

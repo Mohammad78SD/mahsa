@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+{% load persian_numbers %}
+{% load crispy_forms_tags %}
+
+    <div class= "bg-white padding-20" style="margin: 20px;">
+        <h2 style="text-align: center;">لیست فیش های حقوقی</h2>
+        <p style="text-align: center;">برای مشاهده فیش حقوقی هرماه بر روی آن کلیک کنید.</p>
+        <ul style="margin-top: 20px;">
+            {% for payslip in payslips %}
+                <li class="item-li">
+                    <p style="text-align: center;">
+                        <a href="{{ payslip.file.url }}" class="btn btn-netcopy_net" style="margin: 10px;">دانلود فیش حقوقی برج {{ payslip.date|date:"m"|persian_numbers }} سال {{ payslip.date|date:"Y"|persian_numbers }}</a>
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

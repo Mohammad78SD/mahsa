@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Previous Attendances{% endblock %}
+{%load persian_numbers%}
+{% block content %}
+<div class="main-content">
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+    </style>
+    <div class="tab__box">
+        <div class="tab__items">
+            <a class="tab__item" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <a class="tab__item is-active" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
+            <a class="tab__item" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
+            <a class="tab__item" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
+        </div>
+    </div>
+
+    <div class="table__box">
+        <table class="table">
+            <thead role="rowgroup">
+                <tr role="row" class="title-row">
+                    <th>تاریخ</th>
+                    <th>ساعت ورود</th>
+                    <th>ساعت خروج</th>
+                    <th>کارکرد</th>
+                    <th>درخواست ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attendance in attendances %}
+                <tr role="row">
+                    <td>{{ attendance.date|date:"Y/m/d"|persian_numbers }}</td>
+                    <td>{{ attendance.check_in|persian_numbers }}</td>
+                    <td>{{ attendance.check_out|persian_numbers }}</td>
+                    <td>
+                        {{ attendance.duration|persian_numbers }}
+                    </td>
+                    <td>
+                        <a href="{% url 'change_attendance' attendance.id %}" class="item-edit mlg-15" title="درخواست ویرایش" style="color: black;"></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">هیچ سابقه حضوری برای نمایش وجود ندارد.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

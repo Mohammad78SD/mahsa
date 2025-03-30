@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+{% load persian_numbers %}
+{% load static %}
+<div class="bg-white padding-20" style="margin: 20px 20px 0 20px;">
+
+    <h2 style="text-align: center;">پیام های ارسالی</h2>
+    <p style="text-align: center;">در این بخش می‌توانید پیام‌های ارسال شده را مشاهده نمایید.</p>
+
+</div>
+<div class="table__box" style="padding: 20px;">
+    <table class="table">
+        <thead>
+            <tr class="title-row">
+                <th>عنوان پیام</th> <!-- Simplified header -->
+                <th>متن پیام</th> <!-- Simplified header -->
+                <th>تاریخ ارسال</th> <!-- Simplified header -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for message in messages %}
+            <tr>
+                <td>{{ message.title }}</td> <!-- Display the message as the title -->
+                <td>{{ message.description }}</td> <!-- Display the message as the title -->
+                <td>{{ message.created_at|date:'Y/m/d, H:i'|persian_numbers }}</td>
+                <!-- Display timestamp if available -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

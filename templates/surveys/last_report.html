@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+{% load persian_numbers %}
+{% load static %}
+
+<div class="main-content font-size-13">
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+        </style>
+<div class="tab__box">
+    <div class="tab__items">
+        <a class="tab__item is-active" href="{% url 'last_report' %}">آخرین گزارش ارسال شده</a>
+        <a class="tab__item " href="{% url 'monthly_report' %}">ارسال یک گزارش جدید</a>
+    </div>
+</div>
+{% if report %}
+<div class="bg-white padding-20">
+    {% for message in messages %}
+    <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+    {% endfor %}
+    <h2 style="text-align: center;">گزارش برج {{ report.0.month|persian_numbers }}</h2>
+    <p style="text-align: center;">این آخرین گزارش ثبت شده توسط شما می باشد.</p>
+    <p>
+        {{ report.0.text_input|safe }}
+    </p>
+</div>
+{% else %}
+<div class="bg-white padding-20">
+    <p style="text-align: center;">شما تا کنون گزارشی ثبت نکرده اید.</p>
+</div>
+{% endif %}
+</div>
+
+
+{% endblock %}

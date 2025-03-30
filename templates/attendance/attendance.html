@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load persian_numbers %}
+{% block title %}ساعت ورود و خروج{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+    </style>
+    <div class="tab__box">
+        <div class="tab__items">
+            <a class="tab__item is-active" href="{% url 'attendance' %}">ورود و خروج امروز</a>
+            <a class="tab__item" href="{% url 'attendance_list' %}">کارکردهای پیشین</a>
+            <a class="tab__item" href="{% url 'user_requests' %}">درخواست‌های بازبینی</a>
+            <a class="tab__item" href="{% url 'request_attendance' %}">ثبت درخواست جدید</a>
+        </div>
+    </div>
+    <!-- Form with padding and background color -->
+    <form method="POST" class="padding-30 bg-white font-size-14">
+        {% for message in messages %}
+        <div style="background-color: rgb(198, 255, 198); padding: 10px; border-radius: 5px; margin-bottom: 20px;">{{ message }}</div>
+        {% endfor %}
+        {% csrf_token %}
+        <h2 style="text-align: center; padding-bottom: 20px;">ساعت ورود و خروج روز {{ day_name }} {{ today|date:"Y/m/d"|persian_numbers }} </h2>
+        <!-- Check-in Time Field -->
+        <div class="row no-gutters border-2 margin-bottom-15" style="text-align: center;">
+            <div class="w-50" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">
+                ساعت ورود
+            </div>
+            {% if check_in %}
+            
+                        <div class="w-50 bg-fafafa padding-20">
+                            <input style="display: flex; justify-content: center; align-items: center; margin-bottom: 0px; text-align: center;" class="text" 
+                                   value="{{ check_in|persian_numbers }}" 
+                                   {% if check_in %} disabled {% endif %} required>
+                        </div>
+            {% else %}
+            <div class="w-50 bg-fafafa padding-20">
+                <input style="display: flex; justify-content: center; align-items: center; margin-bottom: 0px;" type="time" id="checkin" name="checkin" class="text" 
+                       value="{{ check_out }}" 
+                       {% if check_in %} disabled {% endif %} required>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Only show the check-out field if the user has already checked in -->
+        {% if check_in %}
+        {% if check_out %}
+        
+                <div class="row no-gutters border-2 margin-bottom-15 text-center">
+                    <div class="w-50 padding-20" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">ساعت خروج</div>
+                    <div class="w-50 bg-fafafa padding-20">
+                        <input style="display: flex; justify-content: center; align-items: center; margin-bottom: 0px; text-align: center;"class="text" 
+                               value="{{ check_out|persian_numbers }}" {% if check_out %} disabled {% endif %} required>
+                    </div>
+                </div>
+        {% else %}
+        <div class="row no-gutters border-2 margin-bottom-15 text-center">
+            <div class="w-50 padding-20" style="font-size: larger; font-weight: bolder; display: flex; justify-content: center; align-items: center;">ساعت خروج</div>
+            <div class="w-50 bg-fafafa padding-20">
+                <input style="display: flex; justify-content: center; align-items: center; margin-bottom: 0px;" type="time" id="checkout" name="checkout" class="text" 
+                       value="{{ check_out }}" {% if check_out %} disabled {% endif %} required>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Submit Button -->
+        <div class="text-center" {% if check_out %} style="display: none;" {% endif %}>
+            <button class="btn btn-netcopy_net">
+                {% if check_in %}ثبت ساعت خروج{% else %}ثبت ساعت ورود{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

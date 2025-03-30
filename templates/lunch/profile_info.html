@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+{% load persian_numbers %}
+{% load static %}
+
+<div class="main-content">
+    <div class="user-info bg-white padding-30 font-size-13">
+        <form action="">
+            <div style="border: solid;border-width: 2px; border-color: #e2e2e2; border-radius: 25px; padding: 20px; margin-bottom: 20px;">
+                <h2 style="text-align: center;">مشخصات فردی</h2>
+                <div class="profile__info border cursor-pointer text-center">
+                    {% if user.avatar %}
+                    <div class="avatar__img"><img src="{{ user.avatar.url }}" class="avatar___img">
+                    </div>
+                    {% else %}
+                    <div class="avatar__img"><img src="/static/temp/img/pro.jpg" class="avatar___img">
+                    </div>
+                    {% endif %}
+                </div>
+                <p>نام</p><input class="text" placeholder="نام کاربری" value="{{ user.first_name }}" disabled>
+                <p>نام خانوادگی</p><input class="text" placeholder="نام کاربری" value="{{ user.last_name }}" disabled>
+                <p>نام پدر</p><input class="text" placeholder="نام پدر" value="{{ user.father_name }}" disabled>
+                <p>تاریخ تولد</p><input class="text" placeholder="تاریخ تولد" value="{{ user.birthdate|persian_numbers }}" disabled>
+                <p>شماره موبایل</p><input class="text text" placeholder="شماره موبایل" value="{{ user.phone_number }}" disabled>
+                <p>کد ملی</p><input class="text text" placeholder="کد ملی" value="{{ user.national_code}}" disabled>
+                <p>آدرس محل سکونت</p><input class="text text" placeholder="آدرس محل سکونت" value="{{ user.address }}" disabled>
+                <p>کد پستی</p><input class="text text" placeholder="کد پستی" value="{{ user.postal_code}}" disabled>
+                <p>توضیحات</p><textarea class="text text" placeholder="توضیحات" disabled>{{ user.description }}</textarea>
+            </div>
+            <div style="border: solid;border-width: 2px; border-color: #e2e2e2; border-radius: 25px; padding: 20px;">
+                <h2 style="text-align: center;">سابقه کاربر</h2>
+                <p>آخرین مدرک تحصیلی</p><input class="text text" placeholder="آخرین مدرک تحصیلی" value="{{ user.education}}" disabled>
+                <p>رشته تحصیلی</p><input class="text text" placeholder="رشته تحصیلی" value="{{ user.major}}" disabled>
+                <p>تاریخ شروع فعالیت</p><input class="text text" placeholder="تاریخ شروع فعالیت" value="{{ user.start_date|persian_numbers }}" disabled>
+                <p>تاریخ پایان فعالیت</p><input class="text text" placeholder="تاریخ پایان فعالیت" value="{{ user.end_date|persian_numbers }}" disabled>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <input class="text" style="border-radius: 25px; height: 200px; margin-left: 20px; text-align: center;" placeholder="امضا درخواست کننده">
+                <input class="text" style="border-radius: 25px; height: 200px; margin-left: 20px; margin-right: 20px; text-align: center" placeholder="امضا مدیر داخلی">
+                <input class="text" style="border-radius: 25px; height: 200px; margin-right: 20px; text-align: center" placeholder="مهر و امضا مدیریت">
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

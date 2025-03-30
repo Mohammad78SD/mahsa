@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-content font-size-13">
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+    </style>
+<div class="tab__box">
+    <div class="tab__items">
+        <a class="tab__item " href="{% url 'file_list' %}">لیست فایل ها</a>
+        <a class="tab__item is-active" href="{% url 'send_file' %}">ارسال یک فایل جدید</a>
+    </div>
+</div>
+<div class="bg-white">
+    <p class="box__title">ارسال یک فایل جدید</p>
+    <form action="{% url 'send_file' %}" method="post" enctype="multipart/form-data" class="padding-30">
+        {% csrf_token %}
+
+        <!-- File Name Field -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="name">نام فایل:</label>
+            <input type="text" name="name" id="name" style="background-color: #f9f9f9; padding: 10px; border-radius: 25px;" class="form-control" placeholder="نام فایل را وارد کنید" required>
+        </div>
+
+        <!-- File Upload Field -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="file">انتخاب فایل:</label>
+            <input type="file" name="file" id="file" class="form-control" required>
+        </div>
+
+        <!-- Custom Dropdown for Recipients -->
+        <div class="form-group custom-dropdown" style="margin-bottom: 20px;">
+            <label for="recipients_dropdown">انتخاب گیرندگان:</label>
+            <div class="dropdown-display" tabindex="0">
+                <span class="selected-items">انتخاب گیرندگان</span>
+                <i class="arrow"></i>
+            </div>
+            <ul class="dropdown-options">
+                {% for user in users %}
+                    <li data-value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Hidden input to store selected recipient IDs -->
+        <input type="hidden" name="recipients" id="recipients_dropdown">
+
+        <!-- Submit Button -->
+        <button class="btn btn-netcopy_net" style="margin-top: 20px;">ارسال فایل</button>
+    </form>
+</div>
+</div>
+
+<!-- CSS for custom dropdown and input field -->
+<style>
+    /* Target the name input field by its ID */
+    #id_name {
+        background-color: #f9f9f9; /* Light gray background */
+        border: 1px solid #ccc; /* Optional: Add border styling */
+        padding: 10px 10px 10px 50px; /* Optional: Add padding for better appearance */
+    }
+
+    /* Basic dropdown styling */
+    .custom-dropdown {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .dropdown-display {
+        padding: 10px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dropdown-options {
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+
+    .dropdown-options li {
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    .dropdown-options li:hover {
+        background-color: #f0f0f0;
+    }
+
+    .dropdown-options li.selected {
+        background-color: #ddd;
+    }
+
+    .arrow {
+        border: solid black;
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        padding: 3px;
+        transform: rotate(45deg);
+        margin-left: 5px;
+    }
+
+    .show {
+        display: block;
+    }
+</style>
+
+<!-- JavaScript for dropdown functionality (same as before) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdownDisplay = document.querySelector('.dropdown-display');
+        const dropdownOptions = document.querySelector('.dropdown-options');
+        const selectedItemsSpan = document.querySelector('.selected-items');
+        const hiddenInput = document.getElementById('recipients_dropdown');
+        let selectedValues = [];
+
+        // Toggle dropdown visibility
+        dropdownDisplay.addEventListener('click', () => {
+            dropdownOptions.classList.toggle('show');
+        });
+
+        // Handle option selection
+        dropdownOptions.querySelectorAll('li').forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.getAttribute('data-value');
+                const username = option.textContent;
+                const index = selectedValues.indexOf(value);
+
+                if (index === -1) {
+                    // Add to selected values
+                    selectedValues.push(value);
+                    option.classList.add('selected');
+                } else {
+                    // Remove from selected values
+                    selectedValues.splice(index, 1);
+                    option.classList.remove('selected');
+                }
+
+                // Update the display text
+                selectedItemsSpan.textContent = selectedValues.length > 0 ?
+                    selectedValues.map(val => {
+                        return dropdownOptions.querySelector(`[data-value="${val}"]`).textContent;
+                    }).join(', ') : 'انتخاب گیرندگان';
+
+                // Update the hidden input with selected values
+                hiddenInput.value = selectedValues.join(',');
+            });
+        });
+
+        // Close dropdown if clicking outside
+        document.addEventListener('click', function (e) {
+            if (!dropdownDisplay.contains(e.target) && !dropdownOptions.contains(e.target)) {
+                dropdownOptions.classList.remove('show');
+            }
+        });
+    });
+</script>
+{% endblock %}

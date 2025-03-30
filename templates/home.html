@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load persian_numbers %}
+{% load humanize %}
+{% block title %}ساعت ورود و خروج{% endblock %}
+
+{% block content %}
+
+<div class="main-content">
+    <div id=”divInstallApp”></div>
+
+    <style>
+        .main-content a {
+            color: #000 !important;
+        }
+    </style>
+    <div class="row no-gutters font-size-13 margin-bottom-10">
+        <div class="col-3 padding-20 border-radius-3 bg-white margin-left-10 margin-bottom-10">
+            <p style="font-weight: bold;"> درآمد امروز </p>
+            <br>
+            <p>{{ today_price|persian_numbers }} تومان</p>
+        </div>
+        <div class="col-3 padding-20 border-radius-3 bg-white margin-left-10 margin-bottom-10">
+            <p style="font-weight: bold;">جمع کارکرد این ماه تا این لحظه</p>
+            <br>
+            <p>{{ this_month_total_time|persian_numbers }} ساعت</p>
+        </div>
+        <div class="col-3 padding-20 border-radius-3 bg-white margin-left-10 margin-bottom-10">
+            <p style="font-weight: bold;"> وضعیت ناهار امروز </p>
+            <br>
+            <p>{{ today_lunch|yesno:"رزرو شده ✅,رزرو نشده ❌" }}</p>
+        </div>
+        <div class="col-3 padding-20 border-radius-3 bg-white margin-bottom-10">
+            <p style="font-weight: bold;""> گزارش ماه گذشته </p>
+            <br>
+            <p>{{ monthly_report_filled|yesno:"ارسال شده ✅,ارسال نشده ❌" }}</p>
+        </div>
+    </div>
+    <div class="row bg-white no-gutters font-size-13">
+        <div class="title__row">
+            <p>آخرین پیام های دریافتی</p>
+            <a href="{% url 'messages_list' %}" class="all-reconcile-text margin-left-20 color-2b4a83">نمایش همه پیام ها</a>
+        </div>
+        <div class="table__box">
+            <table width="100%" class="table">
+                <thead role="rowgroup">
+                <tr role="row" class="title-row">
+                    <th>عنوان پیام</th>
+                    <th>متن پیام</th>
+                    <th>تاریخ ارسال</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for notification in notifications %}
+                <tr role="row">
+                    <td><a href="">{{ notification.title }}</a></td>
+                    <td><a href="">{{ notification.description }}</a></td>
+                    <td><a href="">{{ notification.created_at|date:'Y/m/d, H:i'|persian_numbers }}</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">هیچ تراکنشی یافت نشد.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
