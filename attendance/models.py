@@ -96,6 +96,9 @@ class AttendaceRecord(models.Model):
                 )
         else:
             duration = check_out_datetime - check_in_datetime
+        if today.weekday() == 6:
+            # add 20% to the duration
+            duration = duration + timedelta(seconds=(duration.total_seconds() * 0.2))
 
         return duration
 
