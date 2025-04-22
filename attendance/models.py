@@ -81,7 +81,7 @@ class AttendaceRecord(models.Model):
         if self.user.last_name == "نقیان فشارکی" or self.user.last_name == "امجدی":
             if self.check_in < datetime.strptime("11:30", "%H:%M").time():
                 duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
-            return duration
+                return duration
         # look here i want to minos 1 hour from duration if checkin time is between 9 and 11.30 am
         if (
             check_in_datetime.time() > datetime.strptime("08:30", "%H:%M").time()
