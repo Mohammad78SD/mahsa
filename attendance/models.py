@@ -78,7 +78,7 @@ class AttendaceRecord(models.Model):
         elif self.check_out is None and self.date != today:
             self.check_out = datetime.strptime("16:00", "%H:%M").time()
         check_out_datetime = datetime.combine(datetime.today(), self.check_out)
-        if self.user.last_name == "صفایی اردستانی":
+        if self.user.last_name == "نقیان فشارکی" or self.user.last_name == "امجدی":
             if self.check_in < datetime.strptime("11:30", "%H:%M").time():
                 duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
             return duration
@@ -117,8 +117,6 @@ class AttendaceRecord(models.Model):
     def save(self, *args, **kwargs):
         if self.check_in and self.check_out and self.check_in > self.check_out:
             raise ValueError("ساعت ورود نمی‌تواند از ساعت خروج جلوتر باشد.")
-        if self.check_in < datetime.strptime("08:00", "%H:%M").time():
-            self.check_in = self.check_in.replace(hour=8, minute=0)
         super().save(*args, **kwargs)
 
 
