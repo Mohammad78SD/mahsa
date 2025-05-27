@@ -65,6 +65,7 @@ class CustomUserAdmin(BaseUserAdmin):
                 "fields": (
                     "rfid",
                     "avatar",
+                    "role",
                     "first_name",
                     "last_name",
                     "sex",
