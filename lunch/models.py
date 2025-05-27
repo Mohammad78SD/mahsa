@@ -62,6 +62,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
     )
+    role = models.CharField(max_length=30, verbose_name="سمت", null=True, blank=True)
     father_name = models.CharField(
         max_length=30, verbose_name="نام پدر", null=True, blank=True
     )
