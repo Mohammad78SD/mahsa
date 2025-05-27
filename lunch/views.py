@@ -22,36 +22,108 @@ from surveys.models import Payslip
 from django.contrib.humanize.templatetags.humanize import intcomma
 
 
+from PIL import Image, ImageDraw, ImageFont
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+
 @login_required
 def home(request):
     user = request.user
 
-    this_month_total_time = AttendaceRecord.total_attendance_duration_this_month(request.user)
+    this_month_total_time = AttendaceRecord.total_attendance_duration_this_month(
+        request.user
+    )
 
     today_lunch = Lunch.is_lunch_requested_today(request.user)
 
     received_files_count = user.count_received_files()
 
-    notifications = Notification.objects.all().order_by('-created_at')[:3]
+    notifications = Notification.objects.all().order_by("-created_at")[:3]
 
     monthly_report_filled = user.has_filled_report_for_previous_month()
 
-    today_attendance = AttendaceRecord.objects.filter(user=request.user, date=jdatetime.date.today()).first()
+    today_attendance = AttendaceRecord.objects.filter(
+        user=request.user, date=jdatetime.date.today()
+    ).first()
     if today_attendance:
-        today_price = AttendaceRecord.duration(today_attendance).total_seconds() / 3600 * user.salary
+        today_price = (
+            AttendaceRecord.duration(today_attendance).total_seconds()
+            / 3600
+            * user.salary
+        )
     else:
         today_price = 0
     payslips = Payslip.objects.filter(user=request.user)[:1]
     print(payslips)
-    return render(request, "home.html", {
-        'this_month_total_time': int(this_month_total_time),
-        'today_lunch': today_lunch,
-        'received_files_count': received_files_count,
-        'notifications': notifications,
-        'monthly_report_filled': monthly_report_filled,
-        'today_price': f"{int(today_price):,}",
-        'payslips': payslips
-    })
+    return render(
+        request,
+        "home.html",
+        {
+            "this_month_total_time": int(this_month_total_time),
+            "today_lunch": today_lunch,
+            "received_files_count": received_files_count,
+            "notifications": notifications,
+            "monthly_report_filled": monthly_report_filled,
+            "today_price": f"{int(today_price):,}",
+            "payslips": payslips,
+        },
+    )
+
+
+def create_working_form(request):
+    user = request.user
+    if user.is_authenticated:
+        if request.method == "POST":
+            receiver = request.POST.get("receiver")
+            name = user.first_name + " " + user.last_name
+            father = user.father_name
+            national_code = user.national_code
+            start_date = user.start_date
+            role = user.role
+
+            data = {
+                "name": name,
+                "father": father,
+                "national_code": national_code,
+                "start_date": start_date,
+                "role": role,
+                "receiver": receiver,
+            }
+
+            def reshape_rtl(text):
+                reshaped_text = arabic_reshaper.reshape(text)
+                bidi_text = get_display(reshaped_text)
+                return bidi_text
+
+            image = Image.open(
+                "static/images/working_form_base.png"
+            ).convert("RGB")
+
+            draw = ImageDraw.Draw(image)
+
+            font_path = "static/fonts/ttf/Vazirmatn-FD-Bold.ttf"
+            font = ImageFont.truetype(font_path, 20)
+
+            # Coordinates for each field (adjust to fit your form layout)
+            positions = {
+                "name": (600, 650),
+                "father": (950, 710),
+                "national_code": (650, 710),
+                "start_date": (350, 710),
+                "role": (770, 770),
+                "receiver": (900, 510),
+            }
+
+            for key, value in data.items():
+                text = reshape_rtl(value)
+
+                text_width, _ = draw.textsize(text, font=font)
+                x, y = positions[key]
+                draw.text((x - text_width, y), text, font=font, fill="black")
+
+            # Save or return the image
+            image.save("static/generated/form_filled.png")
 
 
 def send_lunch_reservation_sms(request):
@@ -179,10 +251,12 @@ def otp_verify_view(request, phone_number):
             messages.error(request, "کد یکبار مصرف اشتباه است لطفا مجدد تلاش نمایید.")
     return render(request, "lunch/otp_verify.html", {"phone_number": phone_number})
 
+
 @login_required
 def profile_info(request):
     profile_info = request.user
     return render(request, "lunch/profile_info.html", {"profile_info": profile_info})
+
 
 @login_required(login_url="login")
 def reserve_lunch(request):
