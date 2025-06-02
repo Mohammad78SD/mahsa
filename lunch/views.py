@@ -74,7 +74,9 @@ def home(request):
 def create_working_form(request):
     user = request.user
     if user.is_authenticated:
-        if request.method == "POST":
+        if request.method == "GET":
+            return render(request, "lunch/working_form.html")
+        elif request.method == "POST":
             receiver = request.POST.get("receiver")
             name = user.first_name + " " + user.last_name
             father = user.father_name
@@ -86,44 +88,66 @@ def create_working_form(request):
                 "name": name,
                 "father": father,
                 "national_code": national_code,
-                "start_date": start_date,
+                "start_date": start_date.strftime("%Y/%m/%d"),
                 "role": role,
                 "receiver": receiver,
+                "date": jdatetime.date.today().strftime("%Y/%m/%d"),
             }
 
-            def reshape_rtl(text):
-                reshaped_text = arabic_reshaper.reshape(text)
-                bidi_text = get_display(reshaped_text)
-                return bidi_text
-
-            image = Image.open(
-                "static/images/working_form_base.png"
-            ).convert("RGB")
+            image = Image.open("staticfiles/images/working_form_base.png").convert(
+                "RGB"
+            )
 
             draw = ImageDraw.Draw(image)
 
-            font_path = "static/fonts/ttf/Vazirmatn-FD-Bold.ttf"
-            font = ImageFont.truetype(font_path, 20)
+            font_path = "staticfiles/fonts/fonts/ttf/Vazirmatn-FD-Bold.ttf"
+            font = ImageFont.truetype(font_path, 24)
 
             # Coordinates for each field (adjust to fit your form layout)
             positions = {
-                "name": (600, 650),
-                "father": (950, 710),
-                "national_code": (650, 710),
-                "start_date": (350, 710),
-                "role": (770, 770),
+                "name": (620, 645),
+                "father": (950, 700),
+                "national_code": (650, 700),
+                "start_date": (350, 700),
+                "role": (770, 750),
                 "receiver": (900, 510),
+                "date": (1000, 150),
             }
 
             for key, value in data.items():
-                text = reshape_rtl(value)
+                if value is None:
+                    text = ""
+                else:
+                    text = value
 
-                text_width, _ = draw.textsize(text, font=font)
+                bbox = draw.textbbox((0, 0), text, font=font)
+                text_width = bbox[2] - bbox[0]
                 x, y = positions[key]
                 draw.text((x - text_width, y), text, font=font, fill="black")
 
+            print("Image created with the following data:")
+
+            import os
+            from django.http import FileResponse
+
+            forms_dir = "staticfiles/forms"
+            os.makedirs(forms_dir, exist_ok=True)
+            form_name = f"{forms_dir}/form.png"
             # Save or return the image
-            image.save("static/generated/form_filled.png")
+            image.save(form_name)
+            response = FileResponse(open(form_name, "rb"), content_type="image/png")
+            from urllib.parse import quote
+
+            filename = f"فرم اشتغال به کار{user.first_name} {user.last_name} برای {receiver}.png"
+            quoted_filename = quote(filename)
+            response["Content-Disposition"] = (
+                f"attachment; filename*=UTF-8''{quoted_filename}"
+            )
+            return response
+        else:
+            return HttpResponse("Method not allowed", status=405)
+    else:
+        return redirect("login")
 
 
 def send_lunch_reservation_sms(request):
@@ -309,4 +333,7 @@ def reserve_lunch(request):
                 )
 
         messages.success(request, f"تغییرات با موفقیت اعمال شد.")
+        return redirect("reserve_lunch")
+    else:
+        messages.error(request, "خطا در ارسال درخواست.")
         return redirect("reserve_lunch")
