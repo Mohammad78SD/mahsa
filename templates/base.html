@@ -66,8 +66,8 @@
                 class="item-li i-notification__management {% if request.resolver_match.url_name == 'messages_list' %}is-active{% endif %}">
                 <a href="{% url 'messages_list' %}">پیام ها</a>
             </li>
-            <li class="item-li i-users {% if request.resolver_match.url_name == 'profile_info' %}is-active{% endif %}">
-                <a href="{% url 'profile_info' %}">اطلاعات کاربری</a>
+            <li class="item-li i-users {% if request.resolver_match.url_name == 'working_form' %}is-active{% endif %}">
+                <a href="{% url 'working_form' %}">دریافت فرم اشتغال به کار</a>
             </li>
         </ul>
         {% elif user.is_file and not user.is_staff %}
