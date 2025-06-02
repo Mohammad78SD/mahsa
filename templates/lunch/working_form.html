@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+{% load persian_numbers %}
+{% load static %}
+
+<div class="main-content">
+    <div class="user-info bg-white padding-30 font-size-13">
+        <form method="post" action="{% url 'working_form' %}">
+            {% csrf_token %}
+            <div class="form-group" style="display: flex;flex-direction: column; justify-content: center;">
+                <label for="name">نام دریافت کننده فرم:</label>
+                <input type="text" class="form-control custom-border" id="receiver" name="receiver" required>
+                <button type="submit" class="btn btn-netcopy_net"
+                    style=" margin-top: 1rem; display: block; padding: 10px 20% 10px 20%;">ثبت
+                    و دریافت فرم</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+<style>
+    .custom-border {
+        background-color: aliceblue;
+        border-radius: 10px;
+        padding: 10px;
+    }
+</style>
+{% endblock %}
