@@ -35,7 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 LANGUAGE_CODE = "fa-ir"
-locale.setlocale(locale.LC_ALL, 'fa_IR')
+locale.setlocale(locale.LC_ALL, "fa_IR")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -47,8 +47,8 @@ SECRET_KEY = "***REMOVED***"
 DEBUG = True
 
 ALLOWED_HOSTS = ["npanel.metafan.info", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = ['https://npanel.metafan.info']
-CSRF_COOKIE_DOMAIN = 'npanel.metafan.info'
+CSRF_TRUSTED_ORIGINS = ["https://npanel.metafan.info"]
+CSRF_COOKIE_DOMAIN = "npanel.metafan.info"
 
 # Application definition
 
@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     "sqlite3",
     "messaging",
     "pwa",
-    'attendance',
+    "attendance",
 ]
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
@@ -99,7 +99,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                 'attendance.context_processors.site_info',
+                "attendance.context_processors.site_info",
             ],
         },
     },
@@ -140,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'fa-ir'
+LANGUAGE_CODE = "fa-ir"
 
 TIME_ZONE = "Asia/Tehran"
 
@@ -174,38 +174,15 @@ PWA_APP_ORIENTATION = "portrait"
 PWA_APP_START_URL = "/"
 PWA_APP_STATUS_BAR_COLOR = "default"
 PWA_APP_ICONS = [
-    {
-        'src': '/static/pwa/android/android-launchericon-512-512.png',
-        'sizes': '512x512'
-    }
+    {"src": "/static/pwa/android/android-launchericon-512-512.png", "sizes": "512x512"}
 ]
-PWA_APP_ICONS_APPLE = [
-    {
-        'src': '/static/pwa/ios/512.png',
-        'sizes': '512x512'
-    }
-]
+PWA_APP_ICONS_APPLE = [{"src": "/static/pwa/ios/512.png", "sizes": "512x512"}]
 PWA_APP_SPLASH_SCREEN = [
-    {
-      "src": "/static/pwa/windows11/SplashScreen.scale-100.png",
-      "sizes": "620x300"
-    },
-    {
-      "src": "/static/pwa/windows11/SplashScreen.scale-125.png",
-      "sizes": "775x375"
-    },
-    {
-      "src": "/static/pwa/windows11/SplashScreen.scale-150.png",
-      "sizes": "930x450"
-    },
-    {
-      "src": "/static/pwa/windows11/SplashScreen.scale-200.png",
-      "sizes": "1240x600"
-    },
-    {
-      "src": "/static/pwa/windows11/SplashScreen.scale-400.png",
-      "sizes": "2480x1200"
-    },
+    {"src": "/static/pwa/windows11/SplashScreen.scale-100.png", "sizes": "620x300"},
+    {"src": "/static/pwa/windows11/SplashScreen.scale-125.png", "sizes": "775x375"},
+    {"src": "/static/pwa/windows11/SplashScreen.scale-150.png", "sizes": "930x450"},
+    {"src": "/static/pwa/windows11/SplashScreen.scale-200.png", "sizes": "1240x600"},
+    {"src": "/static/pwa/windows11/SplashScreen.scale-400.png", "sizes": "2480x1200"},
 ]
 PWA_APP_DIR = "rtl"
 PWA_APP_LANG = "fa-IR"
@@ -225,22 +202,22 @@ PWA_APP_LANG = "fa-IR"
 # ]
 
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "debug.log"),
-            "encoding": "utf-8",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-    },
-}
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "file": {
+#             "level": "DEBUG",
+#             "class": "logging.FileHandler",
+#             "filename": os.path.join(BASE_DIR, "debug.log"),
+#             "encoding": "utf-8",
+#         },
+#     },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["file"],
+#             "level": "DEBUG",
+#             "propagate": True,
+#         },
+#     },
+# }
