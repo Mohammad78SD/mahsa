@@ -132,13 +132,13 @@ def create_working_form(request):
 
             forms_dir = "staticfiles/forms"
             os.makedirs(forms_dir, exist_ok=True)
-            form_name = f"{forms_dir}/form.png"
+            filename = f"{forms_dir}/فرم اشتغال به کار{user.first_name} {user.last_name} برای {receiver}.png"
+
             # Save or return the image
-            image.save(form_name)
-            response = FileResponse(open(form_name, "rb"), content_type="image/png")
+            image.save(filename)
+            response = FileResponse(open(filename, "rb"), content_type="image/png")
             from urllib.parse import quote
 
-            filename = f"فرم اشتغال به کار{user.first_name} {user.last_name} برای {receiver}.png"
             quoted_filename = quote(filename)
             response["Content-Disposition"] = (
                 f"attachment; filename*=UTF-8''{quoted_filename}"
