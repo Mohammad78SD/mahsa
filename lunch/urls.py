@@ -13,5 +13,5 @@ urlpatterns = [
         views.send_lunch_reservation_sms,
         name="send_lunch_reservations_sms",
     ),
-    path("form/", views.create_working_form, name="form_view"),
+    path("working_form/", views.create_working_form, name="working_form"),
 ]
