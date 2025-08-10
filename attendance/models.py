@@ -78,29 +78,20 @@ class AttendaceRecord(models.Model):
         elif self.check_out is None and self.date != today:
             self.check_out = datetime.strptime("16:00", "%H:%M").time()
         check_out_datetime = datetime.combine(datetime.today(), self.check_out)
-        if self.user.last_name == "نقیان فشارکی" or self.user.last_name == "امجدی":
-            if self.check_in < datetime.strptime("11:30", "%H:%M").time():
-                duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
-                return duration
-        # look here i want to minos 1 hour from duration if checkin time is between 9 and 11.30 am
-        if (
-            check_in_datetime.time() > datetime.strptime("08:30", "%H:%M").time()
-            and check_in_datetime.time() < datetime.strptime("11:30", "%H:%M").time()
-            and check_out_datetime.time() > datetime.strptime("12:30", "%H:%M").time()
-        ):
-            if self.user.sex == "man":
-                duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
-            else:
-                duration = (
-                    check_out_datetime - check_in_datetime - timedelta(minutes=30)
-                )
-        else:
-            duration = check_out_datetime - check_in_datetime
+
         if today.weekday() == 6:
+            duration = check_out_datetime - check_in_datetime
             # add 20% to the duration
             duration = duration + timedelta(seconds=(duration.total_seconds() * 0.2))
+            return duration
 
-        return duration
+        if self.check_in < datetime.strptime("07:30", "%H:%M").time():
+            duration = check_out_datetime - check_in_datetime
+            return duration
+
+        if self.check_in < datetime.strptime("11:30", "%H:%M").time():
+            duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
+            return duration
 
     def __str__(self):
         return f'{self.user} روز {self.date.strftime("%A %Y/%m/%d")}'
