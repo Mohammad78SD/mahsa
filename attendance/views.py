@@ -215,7 +215,8 @@ def report_attendance(request):
                 day_name = record.date.strftime("%A")
                 total_time = record.duration()
                 daily_price = record.daily_total_price()
-                total_hours += total_time
+                if total_time is not None:
+                    total_hours += total_time
                 total_price += daily_price
 
                 sheet.append([
