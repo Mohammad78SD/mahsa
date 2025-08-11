@@ -94,6 +94,10 @@ class AttendaceRecord(models.Model):
         if check_in_datetime.time() < datetime.strptime("11:30", "%H:%M").time():
             duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
             return duration
+        
+        if check_in_datetime.time() > datetime.strptime("12:00", "%H:%M").time():
+            duration = check_out_datetime - check_in_datetime
+            return duration
 
     def __str__(self):
         return f'{self.user} روز {self.date.strftime("%A %Y/%m/%d")}'
