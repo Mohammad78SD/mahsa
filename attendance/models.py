@@ -93,6 +93,8 @@ class AttendaceRecord(models.Model):
 
         if check_in_datetime.time() < datetime.strptime("11:30", "%H:%M").time():
             duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
+            if duration < timedelta(hours=0):
+                duration = timedelta(hours=0)
             return duration
         
         if check_in_datetime.time() > datetime.strptime("12:00", "%H:%M").time():
