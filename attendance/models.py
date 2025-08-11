@@ -65,7 +65,9 @@ class AttendaceRecord(models.Model):
         attendances = cls.objects.filter(user=user).filter(date_range_query)
         total_duration = timedelta()
         for attendance in attendances:
-            total_duration += attendance.duration()
+            duration = attendance.duration()
+            if duration is not None:
+                total_duration += duration
 
         return total_duration.total_seconds() / 3600
 
