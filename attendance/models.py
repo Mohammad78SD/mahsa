@@ -104,7 +104,10 @@ class AttendaceRecord(models.Model):
             self.save()
 
     def daily_total_price(self):
-        duration_in_hours = self.duration().total_seconds() / 3600
+        duration = self.duration()
+        if duration is None:
+            return 0
+        duration_in_hours = duration.total_seconds() / 3600
         return duration_in_hours * self.user.salary
 
     def save(self, *args, **kwargs):
