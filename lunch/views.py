@@ -174,7 +174,12 @@ def send_lunch_reservation_sms(request):
             i += 1
         message += f"{i}. مهدی امجدی\n"
         message += f"{i+1}. دکتر فشارکی\n"
-        message += f"{i+2}. حسن نقیان\n"
+        message += f"{i+2}. محمد ژیان نسب\n"
+        if tomorrow.strftime("%A") != "شنبه":
+            message += f"{i+3}. حسن نقیان\n"
+            i += 1
+        if tomorrow.strftime("%A") == "یک‌شنبه" or tomorrow.strftime("%A") == "سه‌شنبه":
+            message += f"{i+3}. عبدالحمید فطانت\n"
 
         ptrn = {"date": tomorrow.strftime("%A %Y/%m/%d"), "names": message}
         send_sms(["***REMOVED***", "***REMOVED***"], ptrn)
