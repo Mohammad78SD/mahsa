@@ -17,7 +17,7 @@ class AttendaceRecord(models.Model):
     @staticmethod
     def current_month_date_range():
         today = jdatetime.date.today()
-        if today.day < 21:
+        if today.day < 28:
             # If today is before the 21st, consider the previous month
             start_month = today.month - 1 if today.month > 1 else 12
             start_year = today.year if today.month > 1 else today.year - 1
