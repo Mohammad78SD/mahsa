@@ -42,7 +42,6 @@ def offline(request):
 
 @login_required
 def send_file(request):
-    print("In send file view")
     if not request.user.is_file:
         return HttpResponseForbidden("You do not have permission to access this feature.")
 

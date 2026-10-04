@@ -158,7 +158,6 @@ def change_attendance(request, attendance_id=None):
         requested_check_in = request.POST.get('requested_check_in')
         requested_check_out = request.POST.get('requested_check_out')
         date_str = request.POST.get('date')  # Expecting a date string in the format you define
-        print(date_str)
         request_reason = request.POST.get('request_reason')
 
         if attendance:

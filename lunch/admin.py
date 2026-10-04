@@ -28,7 +28,6 @@ class ShamsiDateRangeFilter(admin.SimpleListFilter):
 
             end_date_jalali = jdatetime.date(j_today.year, j_today.month, 25)
 
-            print(start_date_jalali, end_date_jalali)
             return queryset.filter(date__range=(start_date_jalali, end_date_jalali))
 
         return queryset

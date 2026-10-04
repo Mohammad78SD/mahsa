@@ -64,7 +64,6 @@ def home(request):
     else:
         today_price = 0
     payslips = Payslip.objects.filter(user=request.user)[:1]
-    print(payslips)
     return render(
         request,
         "home.html",
@@ -134,7 +133,6 @@ def create_working_form(request):
                 x, y = positions[key]
                 draw.text((x - text_width, y), text, font=font, fill="black")
 
-            print("Image created with the following data:")
 
             import os
             from django.http import FileResponse
@@ -169,7 +167,6 @@ def send_lunch_reservation_sms(request):
 
 def logout_view(request):
     logout(request)
-    print("user logged out.")
     return redirect("login")
 
 
@@ -278,7 +275,6 @@ def reserve_lunch(request):
     today = jdatetime.date.today()
     tomorrow = today + jdatetime.timedelta(days=1)
     after_tomorrow = tomorrow + jdatetime.timedelta(days=1)
-    print(datetime.datetime.now().hour)
     if datetime.datetime.now().hour < 7:
         dates = [(tomorrow + jdatetime.timedelta(days=i)) for i in range(7)]
     else:
