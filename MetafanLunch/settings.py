@@ -190,6 +190,12 @@ SMS_OTP_PATTERN = env("SMS_OTP_PATTERN", "")
 SMS_LUNCH_PATTERN = env("SMS_LUNCH_PATTERN", "")
 SMS_LUNCH_RECIPIENTS = env_list("SMS_LUNCH_RECIPIENTS")
 
+# Extra names appended to the daily lunch list for people who are not
+# reservation users (comma-separated; empty by default).
+LUNCH_EXTRA_NAMES = env_list("LUNCH_EXTRA_NAMES")  # every day
+LUNCH_EXTRA_NAMES_NOT_SATURDAY = env_list("LUNCH_EXTRA_NAMES_NOT_SATURDAY")
+LUNCH_EXTRA_NAMES_SUN_TUE = env_list("LUNCH_EXTRA_NAMES_SUN_TUE")  # Sunday and Tuesday only
+
 
 PWA_APP_NAME = "پنل متافن"
 PWA_APP_DESCRIPTION = "سامانه یکپارچه متافن"
