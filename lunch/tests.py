@@ -104,15 +104,17 @@ class LunchReservationFlowTests(TestCase):
 class LunchSmsListTests(TestCase):
     def test_list_uses_db_names_and_configured_extras(self):
         user = make_user(first_name="Ada", last_name="Lovelace")
+        admin = make_user(phone="09120000081", is_staff=True)
+        self.client.force_login(admin)
         today = jdatetime.date(1404, 1, 1)  # a fixed non Wed/Thu day is chosen below
         while today.strftime("%A") in ("چهارشنبه", "پنج‌شنبه"):
             today += jdatetime.timedelta(days=1)
         tomorrow = today + jdatetime.timedelta(days=1)
         Lunch.objects.create(user=user, date=tomorrow, is_lunch_requested=True)
         with mock.patch.object(jdatetime.date, "today", return_value=today), mock.patch(
-            "lunch.views.send_sms"
+            "lunch.tasks.send_sms"
         ) as send_sms:
-            response = self.client.get(reverse("send_lunch_reservations_sms"))
+            response = self.client.post(reverse("send_lunch_reservations_sms"))
         self.assertEqual(response.status_code, 200)
         send_sms.assert_called_once()
         names = send_sms.call_args[0][1]["names"]
@@ -160,18 +162,18 @@ class OtpLoginFlowTests(TestCase):
         send_otp.assert_not_called()
 
     def test_otp_verify_logs_in_and_code_is_single_use(self):
-        cache.set("otp_09120000095", 1234, timeout=300)
+        cache.set("otp_09120000095", "123456", timeout=300)
         url = reverse("otp_verify", kwargs={"phone_number": "09120000095"})
-        self.client.post(url, {"otp": "1234"})
+        self.client.post(url, {"otp": "123456"})
         self.assertIn("_auth_user_id", self.client.session)
         self.client.logout()
-        self.client.post(url, {"otp": "1234"})  # reuse must fail
+        self.client.post(url, {"otp": "123456"})  # reuse must fail
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_wrong_otp_rejected(self):
-        cache.set("otp_09120000095", 1234, timeout=300)
+        cache.set("otp_09120000095", "123456", timeout=300)
         url = reverse("otp_verify", kwargs={"phone_number": "09120000095"})
-        self.client.post(url, {"otp": "0000"})
+        self.client.post(url, {"otp": "000000"})
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_otp_none_string_cannot_bypass_when_no_code_stored(self):
@@ -193,3 +195,100 @@ class LunchPermissionTests(TestCase):
     def test_working_form_anonymous_redirected(self):
         response = self.client.get(reverse("working_form"))
         self.assertRedirects(response, reverse("login"), fetch_redirect_response=False)
+
+
+class LunchSmsPermissionTests(TestCase):
+    url_name = "send_lunch_reservations_sms"
+
+    def test_anonymous_redirected_and_no_sms(self):
+        with mock.patch("lunch.tasks.send_sms") as send_sms:
+            response = self.client.post(reverse(self.url_name))
+        self.assertEqual(response.status_code, 302)
+        send_sms.assert_not_called()
+
+    def test_regular_user_forbidden(self):
+        self.client.force_login(make_user(phone="09120000080"))
+        with mock.patch("lunch.tasks.send_sms") as send_sms:
+            response = self.client.post(reverse(self.url_name))
+        self.assertEqual(response.status_code, 403)
+        send_sms.assert_not_called()
+
+    def test_get_not_allowed_for_staff(self):
+        self.client.force_login(make_user(phone="09120000079", is_staff=True))
+        self.assertEqual(self.client.get(reverse(self.url_name)).status_code, 405)
+
+    def test_task_sends_dict_pattern(self):
+        from lunch import tasks
+
+        user = make_user(phone="09120000078")
+        today = jdatetime.date(1404, 1, 2)  # Saturday
+        Lunch.objects.create(user=user, date=today + jdatetime.timedelta(days=1))
+        with mock.patch.object(jdatetime.date, "today", return_value=today), mock.patch(
+            "lunch.tasks.send_sms"
+        ) as send_sms:
+            tasks.send_lunch_reservation_sms()
+        self.assertIsInstance(send_sms.call_args[0][1], dict)
+
+    def test_task_skips_wednesday(self):
+        from lunch import tasks
+
+        wednesday = jdatetime.date(1404, 1, 6)
+        self.assertEqual(wednesday.strftime("%A"), "چهارشنبه")
+        with mock.patch.object(jdatetime.date, "today", return_value=wednesday), mock.patch(
+            "lunch.tasks.send_sms"
+        ) as send_sms:
+            tasks.send_lunch_reservation_sms()
+        send_sms.assert_not_called()
+
+
+class OtpHardeningTests(TestCase):
+    phone = "09120000077"
+
+    def setUp(self):
+        cache.clear()
+        make_user(phone=self.phone)
+
+    def _fail_login(self):
+        return self.client.post(
+            reverse("login"), {"phone_number": self.phone, "password": "wrong"}
+        )
+
+    def test_code_is_six_digits_and_not_printed(self):
+        with mock.patch("lunch.views.send_otp") as send_otp, mock.patch("builtins.print") as pr:
+            self._fail_login()
+        code = send_otp.call_args[0][1]
+        self.assertRegex(code, r"^\d{6}$")
+        for call in pr.call_args_list:
+            self.assertNotIn(code, " ".join(map(str, call.args)))
+
+    def test_cooldown_blocks_second_sms(self):
+        with mock.patch("lunch.views.send_otp") as send_otp:
+            self._fail_login()
+            self._fail_login()
+        self.assertEqual(send_otp.call_count, 1)
+
+    def test_five_wrong_attempts_invalidate_code(self):
+        cache.set(f"otp_{self.phone}", "123456", timeout=300)
+        url = reverse("otp_verify", kwargs={"phone_number": self.phone})
+        for _ in range(5):
+            self.client.post(url, {"otp": "000000"})
+        self.client.post(url, {"otp": "123456"})  # correct, but code is burned
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_correct_code_within_attempt_cap_works(self):
+        cache.set(f"otp_{self.phone}", "123456", timeout=300)
+        url = reverse("otp_verify", kwargs={"phone_number": self.phone})
+        for _ in range(4):
+            self.client.post(url, {"otp": "000000"})
+        self.client.post(url, {"otp": "123456"})
+        self.assertIn("_auth_user_id", self.client.session)
+
+
+class LunchMetaTests(TestCase):
+    def test_unique_user_date_enforced(self):
+        user = make_user(phone="09120000076")
+        date = jdatetime.date(1404, 1, 2)
+        Lunch.objects.create(user=user, date=date)
+        with self.assertRaises(IntegrityError):
+            Lunch.objects.create(user=user, date=date)
+        self.assertEqual(Lunch._meta.verbose_name, "رزرو")

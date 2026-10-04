@@ -92,8 +92,17 @@ This starts gunicorn on `$PORT` (default 8002).
 | `SMS_OTP_PATTERN` | ippanel pattern code for OTP messages |
 | `SMS_LUNCH_PATTERN` | ippanel pattern code for the lunch list |
 | `SMS_LUNCH_RECIPIENTS` | Comma-separated numbers that receive the lunch list |
+| `ATTENDANCE_DEVICE_TOKEN` | Shared secret the RFID reader sends in the `X-Device-Token` header. Empty disables `/attendance/api/` (it returns 503) |
 | `LUNCH_EXTRA_NAMES`, `LUNCH_EXTRA_NAMES_NOT_SATURDAY`, `LUNCH_EXTRA_NAMES_SUN_TUE` | Optional comma-separated names appended to the lunch list for people without reservations (every day / all days except Saturday / Sunday and Tuesday only). Empty by default |
 | `PORT` | gunicorn port under pm2 (default 8002) |
+
+## Security notes
+
+- **RFID API** — `POST /attendance/api/` requires the `X-Device-Token` header to match `ATTENDANCE_DEVICE_TOKEN`; with no token configured it returns 503. Body: `{"rfid": "...", "time": "2025-03-22T08:00:00"}`.
+- **Lunch SMS** — `POST /panel/send_lunch_reservations_sms/` requires a logged-in staff/superuser (no longer GET, no longer anonymous). An external scheduler must now authenticate (or call `lunch.tasks.send_lunch_reservation_sms()` directly, e.g. from a management command).
+- **OTP login** — 6-digit codes (`secrets`), valid 5 minutes, invalidated after 5 wrong attempts, one SMS per phone per 60 seconds. State lives in Django's cache; the default per-process cache is only correct with a single worker, so configure a shared cache (Redis/Memcached/database) if you run several gunicorn workers.
+- **Upgrade note (migration `lunch.0013`)** — `Lunch` now really enforces `unique_together = (user, date)`. Applying the migration fails if the production database already has duplicate (user, date) reservations. Remove duplicates first, e.g. in `python manage.py shell`: keep one `Lunch` per (user, date) and delete the rest.
+- **Attendance duration** — Friday (by the record's own date) pays +20% with no break deduction; otherwise a 1 hour break is deducted for check-ins from 07:30 up to 12:00 (earlier check-ins and check-ins from 12:00 on are not deducted).
 
 ## Running tests
 

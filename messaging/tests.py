@@ -29,3 +29,25 @@ class MessagingPermissionTests(TestCase):
     def test_vapid_key_endpoint_returns_configured_public_key(self):
         response = self.client.get(reverse("get_vapid_key"))
         self.assertEqual(response.json(), {"publicKey": "dummy-public-key"})
+
+
+class MessagingAuthTests(TestCase):
+    def test_message_list_requires_login(self):
+        self.assertEqual(self.client.get(reverse("messages_list")).status_code, 302)
+
+    def test_save_subscription_requires_login(self):
+        from messaging.models import WebPushSubscription
+
+        response = self.client.post(
+            reverse("save_subscription"), data="{}", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(WebPushSubscription.objects.exists())
+
+    def test_logged_in_user_can_save_subscription_and_list(self):
+        self.client.force_login(make_user("09120000072"))
+        response = self.client.post(
+            reverse("save_subscription"), data='{"endpoint": "x"}', content_type="application/json"
+        )
+        self.assertEqual(response.json(), {"status": "success"})
+        self.assertEqual(self.client.get(reverse("messages_list")).status_code, 200)

@@ -11,7 +11,8 @@ from django.contrib import messages
 
 
 
-@csrf_exempt
+@csrf_exempt  # the push JS in index.html does not send a CSRF token
+@login_required
 def save_subscription(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -28,9 +29,9 @@ def get_vapid_key(request):
     return JsonResponse({'publicKey': vapid_key})
 
 
+@login_required
 def message_list(request):
-    messages = Notification.objects.all().filter().order_by('-created_at')
-    print(f"messages: {messages}")
+    messages = Notification.objects.all().order_by('-created_at')
     return render(request, 'messaging/messages-list.html', {'messages' : messages})
     
     

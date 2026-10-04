@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django_jalali.db import models as jmodels
 import jdatetime
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from django.db.models import Q
 
 User = get_user_model()
@@ -72,34 +72,31 @@ class AttendaceRecord(models.Model):
         return total_duration.total_seconds() / 3600
 
     def duration(self):
-        today = jdatetime.date.today()
-        # Combine the date with the check-in and check-out times to create datetime objects
-        check_in_datetime = datetime.combine(datetime.today(), self.check_in)
-        if self.check_out is None and self.date == today:
-            self.check_out = datetime.now().time()
-        elif self.check_out is None and self.date != today:
-            self.check_out = datetime.strptime("16:00", "%H:%M").time()
-        check_out_datetime = datetime.combine(datetime.today(), self.check_out)
+        """Paid working time for this record.
 
-        if today.weekday() == 6:
-            duration = check_out_datetime - check_in_datetime
-            # add 20% to the duration
-            duration = duration + timedelta(seconds=(duration.total_seconds() * 0.2))
-            return duration
+        Business rules (kept from the original implementation):
+        - Missing check-out: now if the record is for today, else 16:00.
+        - Friday (the record's own date): worked time + 20%, no break deducted.
+        - Otherwise a 1 hour lunch break is deducted when the person checked in
+          before noon, except for check-ins before 07:30 (early shift, no break).
+          Check-ins from 12:00 on have no deduction. The original code returned
+          None for 11:30-12:00; we treat that gap like the rest of the morning
+          (break deducted), so the rule is simply "before 12:00".
+        """
+        check_out = self.check_out
+        if check_out is None:
+            if self.date == jdatetime.date.today():
+                check_out = datetime.now().time()
+            else:
+                check_out = time(16, 0)
+        today = datetime.today()
+        duration = datetime.combine(today, check_out) - datetime.combine(today, self.check_in)
 
-        if check_in_datetime.time() < datetime.strptime("07:30", "%H:%M").time():
-            duration = check_out_datetime - check_in_datetime
+        if self.date.weekday() == 6:  # Friday (jdatetime weeks start on Saturday)
+            return duration * 1.2
+        if self.check_in < time(7, 30) or self.check_in >= time(12, 0):
             return duration
-
-        if check_in_datetime.time() < datetime.strptime("11:30", "%H:%M").time():
-            duration = check_out_datetime - check_in_datetime - timedelta(hours=1)
-            if duration < timedelta(hours=0):
-                duration = timedelta(hours=0)
-            return duration
-        
-        if check_in_datetime.time() > datetime.strptime("12:00", "%H:%M").time():
-            duration = check_out_datetime - check_in_datetime
-            return duration
+        return max(duration - timedelta(hours=1), timedelta(0))
 
     def __str__(self):
         return f'{self.user} روز {self.date.strftime("%A %Y/%m/%d")}'

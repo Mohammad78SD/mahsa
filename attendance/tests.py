@@ -3,7 +3,7 @@ from unittest import mock
 
 import jdatetime
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from attendance.models import AttendaceRecord, AttendanceRequest
@@ -148,3 +148,83 @@ class AttendanceViewTests(TestCase):
         response = self.client.get(reverse("report_attendance"))
         self.assertEqual(response.status_code, 200)
         self.assertIn("spreadsheetml", response["Content-Type"])
+
+
+class DurationRegressionTests(TestCase):
+    def setUp(self):
+        self.user = make_user(phone="09120000060")
+
+    def _d(self, date, check_in, check_out):
+        return AttendaceRecord(user=self.user, date=date, check_in=check_in, check_out=check_out).duration()
+
+    def test_friday_bonus_uses_record_date_not_today(self):
+        friday = jdatetime.date(1404, 1, 8)
+        self.assertEqual(friday.weekday(), 6)
+        # "today" is a Saturday; the bonus must still apply to the Friday record.
+        with mock.patch.object(jdatetime.date, "today", return_value=jdatetime.date(1404, 1, 9)):
+            self.assertEqual(self._d(friday, time(8, 0), time(12, 0)).total_seconds(), 4 * 3600 * 1.2)
+
+    def test_no_friday_bonus_when_today_is_friday_but_record_is_not(self):
+        with mock.patch.object(jdatetime.date, "today", return_value=jdatetime.date(1404, 1, 8)):
+            self.assertEqual(self._d(PAST, time(13, 0), time(17, 0)).total_seconds(), 4 * 3600)
+
+    def test_check_in_between_1130_and_1200_is_not_none(self):
+        with mock.patch.object(jdatetime.date, "today", return_value=jdatetime.date(1404, 1, 5)):
+            result = self._d(PAST, time(11, 45), time(16, 0))
+        self.assertEqual(result.total_seconds(), (4 * 3600 + 15 * 60) - 3600)
+
+    def test_duration_does_not_mutate_check_out(self):
+        record = AttendaceRecord(user=self.user, date=PAST, check_in=time(13, 0))
+        record.duration()
+        self.assertIsNone(record.check_out)
+
+
+class AttendanceApiTests(TestCase):
+    def setUp(self):
+        self.user = make_user(phone="09120000061", rfid="1234567")
+        self.url = reverse("attendance_api")
+        self.body = {"rfid": "1234567", "time": "2025-03-22T08:00:00"}
+
+    def _post(self, token=None, body=None):
+        headers = {"HTTP_X_DEVICE_TOKEN": token} if token is not None else {}
+        return self.client.post(
+            self.url, data=body or self.body, content_type="application/json", **headers
+        )
+
+    @override_settings(ATTENDANCE_DEVICE_TOKEN="s3cret")
+    def test_missing_or_wrong_token_rejected(self):
+        self.assertEqual(self._post().status_code, 403)
+        self.assertEqual(self._post("nope").status_code, 403)
+        self.assertFalse(AttendaceRecord.objects.exists())
+
+    @override_settings(ATTENDANCE_DEVICE_TOKEN="")
+    def test_fails_closed_when_no_token_configured(self):
+        self.assertEqual(self._post("").status_code, 503)
+        self.assertEqual(self._post("anything").status_code, 503)
+        self.assertFalse(AttendaceRecord.objects.exists())
+
+    @override_settings(ATTENDANCE_DEVICE_TOKEN="s3cret")
+    def test_valid_token_records_check_in(self):
+        self.assertEqual(self._post("s3cret").json()["status"], "success")
+        self.assertEqual(AttendaceRecord.objects.filter(user=self.user).count(), 1)
+
+    @override_settings(ATTENDANCE_DEVICE_TOKEN="s3cret")
+    def test_get_not_allowed_and_bad_body(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.assertEqual(self._post("s3cret", {"time": "2025-03-22T08:00:00"}).status_code, 400)
+        self.assertEqual(self._post("s3cret", {"rfid": "1"}).status_code, 400)
+
+
+class AttendanceViewRedirectTests(TestCase):
+    def test_checkin_redirect_target_exists(self):
+        from django.test import RequestFactory
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        from attendance.views import attendance
+
+        request = RequestFactory().post("/x", {"checkin": "08:00"})
+        request.user = make_user(phone="09120000062")
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        response = attendance(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("attendance_list"))

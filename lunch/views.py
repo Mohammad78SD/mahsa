@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from .models import Lunch, OTP, CustomUser
-import random
+import hmac
+import secrets
 from django.contrib.auth.hashers import make_password
 from django.conf import settings
-from .utils import send_otp, send_sms
+from .utils import send_otp
+from .tasks import send_lunch_reservation_sms as run_lunch_sms
 from django.contrib import messages
 import jdatetime
 import datetime
@@ -13,8 +15,8 @@ import datetime
 
 from .models import Lunch
 import jdatetime
-from .utils import send_sms
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from attendance.models import AttendaceRecord
 from messaging.models import Notification
@@ -26,6 +28,12 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from PIL import Image, ImageDraw, ImageFont
 import arabic_reshaper
 from bidi.algorithm import get_display
+
+
+OTP_DIGITS = 6
+OTP_TTL = 300  # seconds a code stays valid
+OTP_MAX_ATTEMPTS = 5  # wrong guesses before the code is invalidated
+OTP_COOLDOWN = 60  # seconds between SMS sends for the same phone
 
 
 @login_required
@@ -151,45 +159,12 @@ def create_working_form(request):
         return redirect("login")
 
 
+@login_required
+@require_POST
 def send_lunch_reservation_sms(request):
-    print("Sending lunch reservation SMS...")
-    today = jdatetime.date.today()
-    if today.strftime("%A") == "چهارشنبه" or today.strftime("%A") == "پنج‌شنبه":
-        return HttpResponse("we dont send sms in wednsday and thursday.")
-    else:
-        tomorrow = today + jdatetime.timedelta(days=1)
-
-    # Retrieve lunch reservations for tomorrow
-    reservations = Lunch.objects.filter(date=tomorrow)
-    print(tomorrow)
-    if reservations:
-        # Compose SMS message
-        # message = "اسامی ناهار {0}:\n".format(tomorrow.strftime('%A %Y/%m/%d'))
-        # print(message)
-        message = "\n"
-        i = 1
-        for reservation in reservations:
-            message += (
-                f"{i}.{reservation.user.first_name} {reservation.user.last_name}\n"
-            )
-            i += 1
-        extra_names = list(settings.LUNCH_EXTRA_NAMES)
-        weekday = tomorrow.strftime("%A")
-        if weekday != "شنبه":
-            extra_names += settings.LUNCH_EXTRA_NAMES_NOT_SATURDAY
-        if weekday in ("یک‌شنبه", "سه‌شنبه"):
-            extra_names += settings.LUNCH_EXTRA_NAMES_SUN_TUE
-        for name in extra_names:
-            message += f"{i}. {name}\n"
-            i += 1
-
-        ptrn = {"date": tomorrow.strftime("%A %Y/%m/%d"), "names": message}
-        send_sms(settings.SMS_LUNCH_RECIPIENTS, ptrn)
-        print("SMS sent")
-    else:
-        message = "رزروی وجود ندارد"
-        print("No reservations found")
-    return HttpResponse(message)
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden("Staff access required.")
+    return HttpResponse(run_lunch_sms())
 
 
 def logout_view(request):
@@ -245,16 +220,19 @@ def login_view(request):
         else:
             user = CustomUser.objects.filter(phone_number=phone_number).first()
             if user:
-                otp = random.randint(1000, 9999)
-                cache.set(
-                    f"otp_{phone_number}", otp, timeout=300
-                )  # Store OTP for 5 minutes
-                send_otp(phone_number, otp)
-                print(otp)
-                print(phone_number)
-                messages.error(
-                    request, "گذرواژه اشتباه بود، کد یکبار مصرف برای شما ارسال شد."
-                )
+                # Cooldown: at most one SMS per phone per OTP_COOLDOWN seconds.
+                if cache.add(f"otp_cooldown_{phone_number}", 1, timeout=OTP_COOLDOWN):
+                    otp = f"{secrets.randbelow(10**OTP_DIGITS):0{OTP_DIGITS}d}"
+                    cache.set(f"otp_{phone_number}", otp, timeout=OTP_TTL)
+                    cache.delete(f"otp_attempts_{phone_number}")
+                    send_otp(phone_number, otp)
+                    messages.error(
+                        request, "گذرواژه اشتباه بود، کد یکبار مصرف برای شما ارسال شد."
+                    )
+                else:
+                    messages.error(
+                        request, "کد قبلا ارسال شده است، لطفا کمی صبر کنید و مجدد تلاش نمایید."
+                    )
                 return redirect("otp_verify", phone_number=phone_number)
             else:
                 messages.error(request, "کاربری با این شماره تلفن وجود ندارد.")
@@ -269,12 +247,23 @@ def otp_verify_view(request, phone_number):
         stored_otp = cache.get(f"otp_{phone_number}")
         user = CustomUser.objects.filter(phone_number=phone_number).first()
         # A missing/expired code must never match (str(None) == "None" would).
-        if stored_otp is not None and user is not None and str(otp) == str(stored_otp):
+        if (
+            stored_otp is not None
+            and user is not None
+            and hmac.compare_digest(str(otp), str(stored_otp))
+        ):
             cache.delete(f"otp_{phone_number}")  # single use
+            cache.delete(f"otp_attempts_{phone_number}")
             login(request, user)
             return redirect("home")
-        else:
-            messages.error(request, "کد یکبار مصرف اشتباه است لطفا مجدد تلاش نمایید.")
+        if stored_otp is not None:
+            # Too many wrong guesses invalidate the code.
+            attempts_key = f"otp_attempts_{phone_number}"
+            attempts = cache.get(attempts_key, 0) + 1
+            cache.set(attempts_key, attempts, timeout=OTP_TTL)
+            if attempts >= OTP_MAX_ATTEMPTS:
+                cache.delete(f"otp_{phone_number}")
+        messages.error(request, "کد یکبار مصرف اشتباه است لطفا مجدد تلاش نمایید.")
     return render(request, "lunch/otp_verify.html", {"phone_number": phone_number})
 
 
