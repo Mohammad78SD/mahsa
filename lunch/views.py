@@ -173,14 +173,15 @@ def send_lunch_reservation_sms(request):
                 f"{i}.{reservation.user.first_name} {reservation.user.last_name}\n"
             )
             i += 1
-        message += f"{i}. مهدی امجدی\n"
-        message += f"{i+1}. دکتر فشارکی\n"
-        message += f"{i+2}. محمد ژیان نسب\n"
-        if tomorrow.strftime("%A") != "شنبه":
-            message += f"{i+3}. حسن نقیان\n"
+        extra_names = list(settings.LUNCH_EXTRA_NAMES)
+        weekday = tomorrow.strftime("%A")
+        if weekday != "شنبه":
+            extra_names += settings.LUNCH_EXTRA_NAMES_NOT_SATURDAY
+        if weekday in ("یک‌شنبه", "سه‌شنبه"):
+            extra_names += settings.LUNCH_EXTRA_NAMES_SUN_TUE
+        for name in extra_names:
+            message += f"{i}. {name}\n"
             i += 1
-        if tomorrow.strftime("%A") == "یک‌شنبه" or tomorrow.strftime("%A") == "سه‌شنبه":
-            message += f"{i+3}. عبدالحمید فطانت\n"
 
         ptrn = {"date": tomorrow.strftime("%A %Y/%m/%d"), "names": message}
         send_sms(settings.SMS_LUNCH_RECIPIENTS, ptrn)
@@ -266,10 +267,10 @@ def otp_verify_view(request, phone_number):
     if request.method == "POST":
         otp = request.POST.get("otp")
         stored_otp = cache.get(f"otp_{phone_number}")
-        print(f"stored otp:{stored_otp}")
-        print(f"phonenumber is verifyview: {phone_number}")
-        if str(otp) == str(stored_otp):
-            user = CustomUser.objects.get(phone_number=phone_number)
+        user = CustomUser.objects.filter(phone_number=phone_number).first()
+        # A missing/expired code must never match (str(None) == "None" would).
+        if stored_otp is not None and user is not None and str(otp) == str(stored_otp):
+            cache.delete(f"otp_{phone_number}")  # single use
             login(request, user)
             return redirect("home")
         else:
