@@ -1,5 +1,7 @@
 # Mahsa — HR & lunch management system
 
+[![CI](https://github.com/Mohammad78SD/mahsa/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad78SD/mahsa/actions/workflows/ci.yml)
+
 Mahsa is a Django web application for managing day-to-day HR tasks in a small company: employee attendance, daily lunch reservations, SMS/OTP login, internal messaging with shared files, web-push notifications, surveys, monthly reports and payslips. The UI is Persian (RTL, Jalali calendar) and installable as a PWA.
 
 ## What it does
@@ -90,7 +92,19 @@ This starts gunicorn on `$PORT` (default 8002).
 | `SMS_OTP_PATTERN` | ippanel pattern code for OTP messages |
 | `SMS_LUNCH_PATTERN` | ippanel pattern code for the lunch list |
 | `SMS_LUNCH_RECIPIENTS` | Comma-separated numbers that receive the lunch list |
+| `LUNCH_EXTRA_NAMES`, `LUNCH_EXTRA_NAMES_NOT_SATURDAY`, `LUNCH_EXTRA_NAMES_SUN_TUE` | Optional comma-separated names appended to the lunch list for people without reservations (every day / all days except Saturday / Sunday and Tuesday only). Empty by default |
 | `PORT` | gunicorn port under pm2 (default 8002) |
+
+## Running tests
+
+Tests use pytest with pytest-django, an in-memory SQLite database and dummy environment values (`MetafanLunch/test_settings.py`); the SMS client is mocked, so no real API is ever called. Use Python 3.12.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+The same command runs in GitHub Actions on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Project structure
 
