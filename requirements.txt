@@ -22,7 +22,7 @@ jalali_core==1.0.0
 jdatetime==5.0.0
 multidict==6.9.1
 openpyxl==3.1.5
-pillow==10.4.0
+pillow==12.3.0
 propcache==0.5.4
 py-vapid==1.9.4
 pycparser==3.0
