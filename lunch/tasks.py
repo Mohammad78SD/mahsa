@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from .models import Lunch
 import jdatetime
+from django.conf import settings
 from .utils import send_sms
 
 def send_lunch_reservation_sms():
@@ -21,4 +22,4 @@ def send_lunch_reservation_sms():
         for reservation in reservations:
             message += f"{reservation.user.first_name} {reservation.user.last_name}\n"
 
-        send_sms(['***REMOVED***','***REMOVED***'], message)
+        send_sms(settings.SMS_LUNCH_RECIPIENTS, message)

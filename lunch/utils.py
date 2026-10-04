@@ -1,18 +1,24 @@
 from django.conf import settings
-from ippanel import Client, Error, HTTPError, ResponseCode
+from ippanel import Client
+
+
+def _client():
+    return Client(settings.SMS_API_KEY)
+
 
 def send_otp(phone_number, otp):
-    
-    client = Client("***REMOVED***")
-    ptrn = {
-        'code': otp
-        }
-
-    client.send_pattern('zz9qp2vzfbtairt', "***REMOVED***", str(phone_number), ptrn)
-        
+    """Send a one-time login code via an ippanel pattern."""
+    ptrn = {"code": otp}
+    _client().send_pattern(
+        settings.SMS_OTP_PATTERN, settings.SMS_SENDER, str(phone_number), ptrn
+    )
     return True
 
+
 def send_sms(phone_number, ptrn):
-    client = Client("***REMOVED***")
+    """Send the lunch-list pattern message to each number in `phone_number`."""
+    client = _client()
     for num in phone_number:
-        client.send_pattern('bxzxz3df41xdvfm', "***REMOVED***", str(num), ptrn)
+        client.send_pattern(
+            settings.SMS_LUNCH_PATTERN, settings.SMS_SENDER, str(num), ptrn
+        )

@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Lunch, OTP, CustomUser
 import random
 from django.contrib.auth.hashers import make_password
+from django.conf import settings
 from .utils import send_otp, send_sms
 from django.contrib import messages
 import jdatetime
@@ -94,13 +95,13 @@ def create_working_form(request):
                 "date": jdatetime.date.today().strftime("%Y/%m/%d"),
             }
 
-            image = Image.open("staticfiles/images/working_form_base.png").convert(
+            image = Image.open(str(settings.BASE_DIR / "static" / "images" / "working_form_base.png")).convert(
                 "RGB"
             )
 
             draw = ImageDraw.Draw(image)
 
-            font_path = "staticfiles/fonts/fonts/ttf/Vazirmatn-FD-Bold.ttf"
+            font_path = str(settings.BASE_DIR / "static" / "fonts" / "fonts" / "ttf" / "Vazirmatn-FD-Bold.ttf")
             font = ImageFont.truetype(font_path, 24)
 
             # Coordinates for each field (adjust to fit your form layout)
@@ -130,7 +131,7 @@ def create_working_form(request):
             import os
             from django.http import FileResponse
 
-            forms_dir = "staticfiles/forms"
+            forms_dir = str(settings.MEDIA_ROOT / "forms")  # generated files hold personal data: keep out of static
             os.makedirs(forms_dir, exist_ok=True)
             filename = f"{forms_dir}/فرم اشتغال به کار{user.first_name} {user.last_name} برای {receiver}.png"
 
@@ -139,7 +140,7 @@ def create_working_form(request):
             response = FileResponse(open(filename, "rb"), content_type="image/png")
             from urllib.parse import quote
 
-            quoted_filename = quote(filename)
+            quoted_filename = quote(os.path.basename(filename))
             response["Content-Disposition"] = (
                 f"attachment; filename*=UTF-8''{quoted_filename}"
             )
@@ -182,7 +183,7 @@ def send_lunch_reservation_sms(request):
             message += f"{i+3}. عبدالحمید فطانت\n"
 
         ptrn = {"date": tomorrow.strftime("%A %Y/%m/%d"), "names": message}
-        send_sms(["***REMOVED***", "***REMOVED***"], ptrn)
+        send_sms(settings.SMS_LUNCH_RECIPIENTS, ptrn)
         print("SMS sent")
     else:
         message = "رزروی وجود ندارد"
