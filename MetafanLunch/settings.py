@@ -10,45 +10,64 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
 import os
-import jdatetime
 import locale
-from celery.schedules import crontab
+from pathlib import Path
 
-# static files:
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from django.core.exceptions import ImproperlyConfigured
+
+
+def env(name, default=None, required=False):
+    value = os.environ.get(name, default)
+    if required and not value:
+        raise ImproperlyConfigured(f"Set the {name} environment variable.")
+    return value
+
+
+def env_bool(name, default=False):
+    return str(os.environ.get(name, str(default))).strip().lower() in ("1", "true", "yes", "on")
+
+
+def env_list(name, default=""):
+    return [x.strip() for x in os.environ.get(name, default).split(",") if x.strip()]
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticroot")
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "staticfiles"),
-]
+STATIC_ROOT = BASE_DIR / "staticroot"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "lunch.CustomUser"
 LOGIN_URL = "/panel/login/"
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 LANGUAGE_CODE = "fa-ir"
-locale.setlocale(locale.LC_ALL, "fa_IR")
+try:
+    locale.setlocale(locale.LC_ALL, "fa_IR")
+except locale.Error:
+    pass  # fa_IR locale not installed on this machine
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "***REMOVED***"
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = ["npanel.metafan.info", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = ["https://npanel.metafan.info"]
-CSRF_COOKIE_DOMAIN = "npanel.metafan.info"
+# The secret key must be provided in production. A throwaway key is used only
+# when DEBUG is on (local development).
+SECRET_KEY = env("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-only-insecure-key-do-not-use-in-production"
+    else:
+        raise ImproperlyConfigured("Set the DJANGO_SECRET_KEY environment variable.")
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost" if DEBUG else "")
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+CSRF_COOKIE_DOMAIN = env("DJANGO_CSRF_COOKIE_DOMAIN") or None
 
 # Application definition
 
@@ -113,7 +132,7 @@ WSGI_APPLICATION = "MetafanLunch.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": env("DJANGO_DB_PATH", str(BASE_DIR / "db.sqlite3")),
     }
 }
 
@@ -159,9 +178,17 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-VAPID_PUBLIC_KEY = "***REMOVED***"
-VAPID_PRIVATE_KEY = ("***REMOVED***",)
-VAPID_ADMIN_EMAIL = "info@metafan.info"
+# Web push (VAPID). Generate a key pair with `vapid --gen` (py-vapid).
+VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", "")
+VAPID_ADMIN_EMAIL = env("VAPID_ADMIN_EMAIL", "")
+
+# SMS gateway (ippanel): OTP login codes and the daily lunch list.
+SMS_API_KEY = env("SMS_API_KEY", "")
+SMS_SENDER = env("SMS_SENDER", "")
+SMS_OTP_PATTERN = env("SMS_OTP_PATTERN", "")
+SMS_LUNCH_PATTERN = env("SMS_LUNCH_PATTERN", "")
+SMS_LUNCH_RECIPIENTS = env_list("SMS_LUNCH_RECIPIENTS")
 
 
 PWA_APP_NAME = "پنل متافن"
