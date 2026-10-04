@@ -10,7 +10,7 @@ User = get_user_model()
 
 class AttendaceRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = jmodels.jDateField(default=jdatetime.date.today())
+    date = jmodels.jDateField(default=jdatetime.date.today)
     check_in = models.TimeField()
     check_out = models.TimeField(null=True, blank=True)
 
