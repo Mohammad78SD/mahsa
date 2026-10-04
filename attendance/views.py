@@ -10,7 +10,7 @@ from openpyxl.utils import get_column_letter
 #get user model
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseForbidden
 import tempfile
 from lunch.models import Lunch
 
@@ -122,6 +122,7 @@ def attendance_api(request):
 
 
 
+@login_required
 def attendance_list(request):
     # Get the attendance records for the logged-in user
     attendances = AttendaceRecord.objects.filter(user=request.user).order_by('-date')
@@ -177,6 +178,7 @@ def change_attendance(request, attendance_id=None):
 
     return render(request, 'attendance/attendance_edit.html', {'attendance': attendance})
 
+@login_required
 def user_requests(request):
     user_requests = AttendanceRequest.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'attendance/attendance_requests.html', {'user_requests': user_requests})
@@ -246,3 +248,4 @@ def report_attendance(request):
             response = FileResponse(open(tmp.name, 'rb'), as_attachment=True, filename="Attendance_Report.xlsx")
 
         return response
+    return HttpResponseForbidden("Superuser access required.")
