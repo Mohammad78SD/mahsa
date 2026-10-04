@@ -21,3 +21,14 @@ class SurveyViewTests(TestCase):
         response = self.client.post(reverse("monthly_report"), {"text_input": "done", "month": 3})
         self.assertRedirects(response, reverse("last_report"), fetch_redirect_response=False)
         self.assertEqual(MonthlyReport.objects.get(user=user).month, 3)
+
+
+class MonthChoicesTests(TestCase):
+    def test_choices_are_static_jalali_names(self):
+        from surveys.models import JALALI_MONTHS
+
+        choices = MonthlyReport._meta.get_field("month").choices
+        self.assertEqual(choices, JALALI_MONTHS)
+        self.assertEqual(len(choices), 12)
+        self.assertEqual(choices[0], (1, "فروردین"))
+        self.assertEqual(choices[11], (12, "اسفند"))

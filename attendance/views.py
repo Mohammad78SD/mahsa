@@ -38,7 +38,7 @@ def attendance(request):
                 # Create a new record if it doesn't exist (first check-in)
                 AttendaceRecord.objects.create(user=user, check_in=check_in, date=today)
                 messages.success(request, "ساعت ورود با موفقیت ثبت شد.")
-                return redirect('attendance')  # Redirect to the same view after processing
+                return redirect('attendance_list')  # the attendance view itself is not routed
 
         if 'checkout' in request.POST:
             checkout_time_str = request.POST.get('checkout')
@@ -51,7 +51,7 @@ def attendance(request):
                 record.check_out = check_out
                 record.save()
                 messages.success(request, "ساعت خروج با موفقیت ثبت شد.")
-                return redirect('attendance')  # Redirect to the same view after processing
+                return redirect('attendance_list')  # the attendance view itself is not routed
 
     # Pass the existing check-in/check-out times and other context to the template
     context = {
@@ -64,60 +64,76 @@ def attendance(request):
     return render(request, 'attendance/attendance.html', context)
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.conf import settings
+import hmac
 import json
 from django.http import JsonResponse
 from datetime import datetime
 
 
 @csrf_exempt
+@require_POST
 # api for setting checkin and checkout from rfidreader
 def attendance_api(request):
-    if request.method == "POST":
+    # Authenticated by a shared device secret; no token configured = disabled.
+    expected = settings.ATTENDANCE_DEVICE_TOKEN
+    if not expected:
+        return JsonResponse(
+            {"status": "error", "message": "attendance API is not configured"}, status=503
+        )
+    provided = request.headers.get("X-Device-Token", "")
+    if not hmac.compare_digest(provided.encode(), expected.encode()):
+        return JsonResponse({"status": "error", "message": "forbidden"}, status=403)
+
+    try:
         data = json.loads(request.body)
         rfid = data.get("rfid")
-        received_time = data.get("time")
-        gtime = datetime.fromisoformat(received_time).replace(tzinfo=None)
-        time = jdatetime.datetime.fromgregorian(datetime=gtime).time()
-        print(time)
-        try:
-            user = User.objects.get(rfid=rfid)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "user not found"})
-        today = jdatetime.date.today()
-        try:
-            record = AttendaceRecord.objects.get(user=user, date=today)
-        except AttendaceRecord.DoesNotExist:
-            record = None
+        if not rfid:  # rfid=None would match every user without a card
+            raise ValueError("missing rfid")
+        gtime = datetime.fromisoformat(data.get("time")).replace(tzinfo=None)
+    except (ValueError, TypeError, AttributeError):
+        return JsonResponse({"status": "error", "message": "bad request"}, status=400)
+    time = jdatetime.datetime.fromgregorian(datetime=gtime).time()
+    try:
+        user = User.objects.get(rfid=rfid)
+    except (User.DoesNotExist, User.MultipleObjectsReturned):
+        return JsonResponse({"status": "error", "message": "user not found"})
+    today = jdatetime.date.today()
+    try:
+        record = AttendaceRecord.objects.get(user=user, date=today)
+    except AttendaceRecord.DoesNotExist:
+        record = None
 
-        if record:
-            if record.check_in and record.check_out:
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "message": "you have already checked in and out today",
-                    }
-                )
-            if time and record.check_in and not record.check_out:
-                check_out = time
-                record.check_out = check_out
-                record.save()
-                return JsonResponse(
-                    {
-                        "status": "success",
-                        "message": "checkout time set successfully",
-                    }
-                )
-            else:
-                return JsonResponse({"status": "error", "message": "invalid request"})
+    if record:
+        if record.check_in and record.check_out:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "you have already checked in and out today",
+                }
+            )
+        if time and record.check_in and not record.check_out:
+            check_out = time
+            record.check_out = check_out
+            record.save()
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "checkout time set successfully",
+                }
+            )
         else:
-            if time:
-                check_in = time
-                AttendaceRecord.objects.create(user=user, check_in=check_in, date=today)
-                return JsonResponse(
-                    {"status": "success", "message": "checkin time set successfully"}
-                )
-            else:
-                return JsonResponse({"status": "error", "message": "invalid request"})
+            return JsonResponse({"status": "error", "message": "invalid request"})
+    else:
+        if time:
+            check_in = time
+            AttendaceRecord.objects.create(user=user, check_in=check_in, date=today)
+            return JsonResponse(
+                {"status": "success", "message": "checkin time set successfully"}
+            )
+        else:
+            return JsonResponse({"status": "error", "message": "invalid request"})
 
 
 

@@ -5,16 +5,24 @@ from django_jalali.db import models as jmodels
 import jdatetime
 
 
+# Static (locale independent) Jalali month names, so migrations are stable.
+JALALI_MONTHS = [
+    (1, "فروردین"), (2, "اردیبهشت"), (3, "خرداد"), (4, "تیر"),
+    (5, "مرداد"), (6, "شهریور"), (7, "مهر"), (8, "آبان"),
+    (9, "آذر"), (10, "دی"), (11, "بهمن"), (12, "اسفند"),
+]
+
+
 class MonthlyReport(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     text_input = models.TextField()
-    month = models.IntegerField(choices=[(i, jdatetime.date(1400, i, 1).strftime('%B')) for i in range(1, 13)])
+    month = models.IntegerField(choices=JALALI_MONTHS)
     created_at = jmodels.jDateTimeField(auto_now_add=True)
     class Meta:
         verbose_name = "گزارش ماهانه"
         verbose_name_plural = "گزارش های ماهانه"
     def __str__(self):
-        moonth = jdatetime.date(1400, self.month , 1).strftime('%B')
+        moonth = dict(JALALI_MONTHS).get(self.month, self.month)
         return (f'گزارش {moonth} ماه {self.user.first_name} {self.user.last_name}')
 
     

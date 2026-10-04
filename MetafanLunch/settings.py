@@ -85,7 +85,6 @@ INSTALLED_APPS = [
     "lunch",
     "django_jalali",
     "surveys",
-    "sqlite3",
     "messaging",
     "pwa",
     "attendance",
@@ -101,7 +100,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
@@ -189,6 +187,10 @@ SMS_SENDER = env("SMS_SENDER", "")
 SMS_OTP_PATTERN = env("SMS_OTP_PATTERN", "")
 SMS_LUNCH_PATTERN = env("SMS_LUNCH_PATTERN", "")
 SMS_LUNCH_RECIPIENTS = env_list("SMS_LUNCH_RECIPIENTS")
+
+# Shared secret the RFID reader sends in the X-Device-Token header. Empty = the
+# attendance API is disabled (fails closed).
+ATTENDANCE_DEVICE_TOKEN = env("ATTENDANCE_DEVICE_TOKEN", "")
 
 # Extra names appended to the daily lunch list for people who are not
 # reservation users (comma-separated; empty by default).

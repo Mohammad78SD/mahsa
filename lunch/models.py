@@ -22,8 +22,6 @@ class Lunch(models.Model):
 
     class Meta:
         unique_together = ("user", "date")
-
-    class Meta:
         verbose_name = "رزرو"
         verbose_name_plural = "رزروها"
 
