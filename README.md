@@ -18,7 +18,7 @@ Mahsa is a Django web application for managing day-to-day HR tasks in a small co
 
 ## Tech stack
 
-- Python, Django 5.0, SQLite (default)
+- Python, Django 5.2 LTS, SQLite (default)
 - `django-jalali` / `jdatetime` for the Persian calendar
 - `django-pwa` and a service worker for PWA support
 - `pywebpush` / `py-vapid` for web push
@@ -28,7 +28,7 @@ Mahsa is a Django web application for managing day-to-day HR tasks in a small co
 - `django-crispy-forms` (Bootstrap 4 pack), WhiteNoise for static files
 - gunicorn + pm2 for deployment (`ecosystem.config.js`)
 
-`requirements.txt` also lists Celery, django-celery-beat, django-apscheduler and Redis, which are not wired into `settings.py` in this repository; the lunch SMS endpoint is intended to be called by an external scheduler (e.g. cron).
+Background jobs are not part of this project: the lunch SMS endpoint is intended to be called by an external scheduler (e.g. cron).
 
 ## Architecture overview
 
@@ -46,7 +46,7 @@ Main URL prefixes: `/panel/` (lunch, login, profile), `/attendance/`, `/messages
 
 ## Getting started
 
-Requires Python 3.12 or similar (the pinned dependencies do not build on very new Python versions) and the `fa_IR` locale is used if installed (optional).
+Requires Python 3.12 or newer (CI runs 3.12) and the `fa_IR` locale is used if installed (optional).
 
 ```bash
 python3.12 -m venv venv
